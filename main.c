@@ -14,7 +14,7 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
 #define BUFFER_HEIGHT 272
 #define SCREEN_WIDTH 480
 #define SCREEN_HEIGHT BUFFER_HEIGHT
-#define MAX_BULLETS 100
+#define MAX_BULLETS 20
 
 #define printf pspDebugScreenPrintf // don't need stdlib anyway
 
@@ -137,20 +137,32 @@ void drawTriangle(Triangle* t)
     sceGuDrawArray(GU_LINE_STRIP, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, 4, 0, verts);
 }
 
+void getTriPeak(Triangle *t, float *peakx, float *peaky)
+{
+    float localx = 0;
+    float localy = t->h / 2;
+
+    // Rotate the peak position based on the triangle's angle
+    float cosA = cosf(t->angle);
+    float sinA = sinf(t->angle);
+    *peakx = t->x + (localx * cosA - localy * sinA);
+    *peaky = t->y + (localx * sinA + localy * cosA);
+}
+
 typedef struct Bullet
 {
     float x, y;
     float angle;
     float speed;
-    short int active;
+    char active;
 
 } Bullet;
 
-Bullet pew[100] = {0.f, 0.f, 0.f, 1.f};
+Bullet pew[MAX_BULLETS] = {0.f, 0.f, 0.f, 1.f, 0.f};
 
 void initBullet()
 {
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < MAX_BULLETS; i++)
     {
         pew[i].active = 0;
     }  
@@ -217,11 +229,11 @@ void handleArea(float *playerx, float *playery)
 
 void handleSpeed(float *accx, float *accy)
 {
-    float maxAcc = 170.0f; // Maximum allowed acceleration
+    float maxAcc = 155.0f; // Maximum allowed acceleration
     if (*accx > maxAcc) *accx = maxAcc;
-    if (*accx < -maxAcc) *accx = -maxAcc;
-    if (*accy > maxAcc) *accy = maxAcc;
-    if (*accy < -maxAcc) *accy = -maxAcc;
+    if (*accx < maxAcc - 128) *accx = maxAcc - 128; //equalize positive and negative acceleration
+    if (*accy > maxAcc) *accy = maxAcc; 
+    if (*accy < maxAcc - 128) *accy = maxAcc - 128;
 }
 
 int main() {
@@ -234,9 +246,8 @@ int main() {
 
     pspDebugScreenInit();
 
-
-    Triangle player = {100.f, 50.f, 20.f, 34.f};
-
+    // spawn player at the center of the screen
+    Triangle player = {240.f, 136.f, 20.f, 34.f};
     
     initBullet();
 
@@ -248,6 +259,9 @@ int main() {
     float accy = 128.f;
     float velx = 0, vely = 0;
 
+    short int pewTimer = 0;
+    char setDebug = 1;
+
     running = 1;
     while(running){
         startFrame();
@@ -255,12 +269,12 @@ int main() {
         pspDebugScreenSetXY(0, 2);
         sceCtrlReadBufferPositive(&pad, 1); 
 
-        accx -= (pad.Lx  - 128) / 20;
-        accy -= (pad.Ly  - 128) / 20;
+        accx -= (pad.Lx  - 128) / 50;
+        accy -= (pad.Ly  - 128) / 50;
 
 
-        velx = (accx - pad.Lx) / 50; // immitate acceleration and no gravity  
-        vely = (accy - pad.Ly) / 50;                                          
+        velx = (accx - pad.Lx) / 80; // immitate acceleration and no gravity  
+        vely = (accy - pad.Ly) / 80;                                          
                 
         player.x -= velx; 
         player.y -= vely; 
@@ -281,24 +295,39 @@ int main() {
             {
                 player.angle += 0.07f;
             }
+
+            if (player.angle < 0) player.angle += 2 * M_PI;
+            if (player.angle >= 2 * M_PI) player.angle -= 2 * M_PI;
+
             if (pad.Buttons & PSP_CTRL_CROSS)
             {
-                for (int i = 0; i < MAX_BULLETS; i++)
+                if (!pewTimer)
                 {
-                    if (!pew[i].active)
+                    for (int i = 0; i < MAX_BULLETS; i++)
                     {
-                        // Spawn a new bullet
-                        pew[i].x = player.x;
-                        pew[i].y = player.y;
-                        pew[i].angle = player.angle;
-                        pew[i].speed = 3.0f; // Set bullet speed
-                        pew[i].active = 1;   // Mark as active
-                        break; 
-                    }
+                        if (!pew[i].active)
+                        {
+                            float peakx, peaky;
+                            getTriPeak(&player, &peakx, &peaky);
+
+                            // Spawn a new bullet
+                            pew[i].x = peakx;
+                            pew[i].y = peaky;
+                            pew[i].angle = player.angle + (90.f * M_PI / 180.f);
+                            pew[i].speed = 8.0f; // Set bullet speed
+                            pew[i].active = 1;   // Mark as active
+                            pewTimer = 15;
+                            break; 
+                        }
+                    } 
                 }
             }
         }      
 
+        if (pewTimer > 0)
+        {
+            pewTimer--;
+        }
 
         printf("Analog X = %3d, ", pad.Lx);
         printf("Analog Y = %3d \n", pad.Ly);
@@ -306,8 +335,10 @@ int main() {
         printf("player x = %.4f\n", player.x);
         printf("player y = %.4f\n", player.y);
 
-        printf("vel x = %.4f\n", accx);
-        printf("vel y = %.4f\n", accy);
+        printf("acc x = %.1f\n", accx);
+        printf("acc y = %.1f\n", accy);
+        printf("total pews %zuB\n", sizeof(pew));
+        printf("active pews %zuB\n", sizeof(pew) / sizeof(pew[0]));
 
         drawTriangle(&player);
 
