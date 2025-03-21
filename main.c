@@ -1,5 +1,6 @@
 #include <complex.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include <pspkernel.h>
 #include <pspgu.h>
@@ -94,6 +95,36 @@ void endFrame()
     sceGuSwapBuffers();
 }
 
+// loop around the screen if at the edges
+void handleArea(float *x, float *y)
+{
+    if (*x <= -22.f)
+    {
+        *x = 480.f;    
+    }
+    else if (*x >= (float)SCREEN_WIDTH)
+    {
+        *x = 0.f;    
+    }
+    else if (*y <= -36.f)
+    {
+        *y = 272.f;    
+    }
+    else if (*y >= (float)SCREEN_HEIGHT)
+    {
+        *y = 0.f;    
+    }
+}
+
+void handleSpeed(float *accx, float *accy)
+{
+    float maxAcc = 155.0f; // Maximum allowed acceleration
+    if (*accx > maxAcc) *accx = maxAcc;
+    if (*accx < maxAcc - 128) *accx = maxAcc - 128; //equalize positive and negative acceleration
+    if (*accy > maxAcc) *accy = maxAcc; 
+    if (*accy < maxAcc - 128) *accy = maxAcc - 128;
+}
+
 typedef struct Vertex
 {
     unsigned short u, v;
@@ -152,13 +183,72 @@ void getTriPeak(Triangle* t, float *peakx, float *peaky)
     *peaky = t->y + (localx * sinA + localy * cosA);
 }
 
+typedef struct Bullet
+{
+    float x, y;
+    float angle;
+    float speed;
+    char active;
+
+} Bullet;
+
+// create global Bullet object
+Bullet pew[MAX_BULLETS] = {0.f, 0.f, 0.f, 0.f, 0};
+
+void initBullet()
+{
+    for (int i = 0; i < MAX_BULLETS; i++)
+    {
+        pew[i].active = 0;
+    }  
+}
+
+void drawBullet(Bullet *b)
+{
+    Vertex* p = (Vertex*)sceGuGetMemory(sizeof(Vertex));
+
+    p[0].x = b->x;
+    p[0].y = b->y;
+    
+    sceGuColor(0xFFFFFFFF); // colors are ABGR
+    sceGuDrawArray(GU_POINTS, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, 1, 0, p);
+}
+
+void moveBullet(Bullet *b)
+{
+    b->x += cosf(b->angle) * b->speed;
+    b->y += sinf(b->angle) * b->speed;
+}
+
+void updateBullets()
+{
+    for (int i = 0; i < MAX_BULLETS; i++)
+    {
+        if (pew[i].active)
+        {
+            // Move the bullet
+            moveBullet(&pew[i]);
+
+            // Draw the bullet
+            drawBullet(&pew[i]);
+
+            if (pew[i].x < 0 || pew[i].x > SCREEN_WIDTH ||
+                pew[i].y < 0 || pew[i].y > SCREEN_HEIGHT)
+            {
+                // "remove" the bullet
+                pew[i].active = 0;
+            }
+        }
+    }
+}
+
 typedef struct Asteroid
 {
     float x, y;
     float w, h;
     float angle;
-    // float velx = (rand() % 200) - 100;
-    // float vely = (rand() % 200) - 100;
+    float velx;
+    float vely;
     char active;
 } Asteroid;
 
@@ -223,15 +313,12 @@ void drawAsteroid(Asteroid* a)
 
 void initAsteroid()
 {
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < MAX_AST; i++)
     {
-        rock[i].active = 1;     
+        rock[i].active = 0;     
+        rock[i].velx = (rand() % 200) - 100;
+        rock[i].vely = (rand() % 200) - 100;
     } 
-}
-
-void moveAsteroid()
-{
-    
 }
 
 void updateAsteroid()
@@ -240,100 +327,47 @@ void updateAsteroid()
     {
         if (rock[i].active)
         {
-            moveAsteroid(&rock[i]);
+            rock[i].x += rock[i].velx * 0.01;
+            rock[i].y += rock[i].vely * 0.01;
+            
+            rock[i].angle += 0.01f;
 
             drawAsteroid(&rock[i]);
-        }
-    }
-}
-
-typedef struct Bullet
-{
-    float x, y;
-    float angle;
-    float speed;
-    char active;
-
-} Bullet;
-
-// create global Bullet object
-Bullet pew[MAX_BULLETS] = {0.f, 0.f, 0.f, 0.f, 0};
-
-void initBullet()
-{
-    for (int i = 0; i < MAX_BULLETS; i++)
-    {
-        pew[i].active = 0;
-    }  
-}
-
-void drawBullet(Bullet *b)
-{
-    Vertex* p = (Vertex*)sceGuGetMemory(sizeof(Vertex));
-
-    p[0].x = b->x;
-    p[0].y = b->y;
-    
-    sceGuColor(0xFFFFFFFF); // colors are ABGR
-    sceGuDrawArray(GU_POINTS, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, 1, 0, p);
-}
-
-void moveBullet(Bullet *b)
-{
-    b->x += cosf(b->angle) * b->speed;
-    b->y += sinf(b->angle) * b->speed;
-}
-
-void updateBullets()
-{
-    for (int i = 0; i < MAX_BULLETS; i++)
-    {
-        if (pew[i].active)
-        {
-            // Move the bullet
-            moveBullet(&pew[i]);
-
-            // Draw the bullet
-            drawBullet(&pew[i]);
-
-            if (pew[i].x < 0 || pew[i].x > SCREEN_WIDTH ||
-                pew[i].y < 0 || pew[i].y > SCREEN_HEIGHT)
+            
+            handleArea(&rock[i].x, &rock[i].y);
+            
+            // collision checking
+            for (int j = 0; j < MAX_BULLETS; j++)
             {
-                // "remove" the bullet
-                pew[i].active = 0;
+                // giving the asteroid an 36x36 hitbox
+                // TODO change to get the hitbox from rock width and height
+                if (pew[j].active && 
+                    pew[j].x >= rock[i].x - 18 && pew[j].x <= rock[i].x + 18 &&
+                    pew[j].y >= rock[i].y - 18 && pew[j].y <= rock[i].y + 18)
+                {
+                    rock[i].active = 0;
+                    pew[j].active = 0;
+                    break;
+                }
             }
         }
     }
 }
 
-// loop around the screen if at the edges
-void handleArea(float *x, float *y)
+void spawnAsteroid()
 {
-    if (*x <= -22.f)
+    for (int i = 0; i < MAX_AST; i++)
     {
-        *x = 480.f;    
+        if (!rock[i].active)
+        {
+            rock[i].x = 100;
+            rock[i].y = 100;
+            rock[i].w = 40;
+            rock[i].h = 40;
+            rock[i].active = 1;
+            break; 
+        }
     }
-    else if (*x >= (float)SCREEN_WIDTH)
-    {
-        *x = 0.f;    
-    }
-    else if (*y <= -36.f)
-    {
-        *y = 272.f;    
-    }
-    else if (*y >= (float)SCREEN_HEIGHT)
-    {
-        *y = 0.f;    
-    }
-}
-
-void handleSpeed(float *accx, float *accy)
-{
-    float maxAcc = 155.0f; // Maximum allowed acceleration
-    if (*accx > maxAcc) *accx = maxAcc;
-    if (*accx < maxAcc - 128) *accx = maxAcc - 128; //equalize positive and negative acceleration
-    if (*accy > maxAcc) *accy = maxAcc; 
-    if (*accy < maxAcc - 128) *accy = maxAcc - 128;
 }
 
 int main() {
@@ -348,9 +382,10 @@ int main() {
 
     // spawn player at the center of the screen
     Triangle player = {240.f, 136.f, 20.f, 34.f};
-    Asteroid rock = {200, 100, 40, 40};
+    //Asteroid rock = {200, 100, 40, 40};
     
     initBullet();
+    initAsteroid();
 
     // Setup the library used for rendering
     initGu();
@@ -423,6 +458,10 @@ int main() {
                     } 
                 }
             }
+            if (pad.Buttons & PSP_CTRL_CIRCLE)
+            {
+                spawnAsteroid();
+            }
         }      
 
         if (pewTimer > 0)
@@ -430,8 +469,9 @@ int main() {
             pewTimer--;
         }
         
-        rock.angle+= 0.01; 
-
+        // spawnAsteroid();
+        updateAsteroid();
+        
         printf("Analog X = %3d, ", pad.Lx);
         printf("Analog Y = %3d \n", pad.Ly);
         
@@ -444,7 +484,14 @@ int main() {
         printf("total pews %zuB\n", sizeof(pew));
         printf("total rocks %zuB\n", sizeof(rock));
         
-        drawAsteroid(&rock);
+        for (int x = 0; x < MAX_AST; x++)
+        {
+            if (rock[x].active)
+            {
+                printf("rock %d pos x = %.4f y = %.4f\n", x, rock[x].x, rock[x].y);
+            }
+        }
+        
         drawTriangle(&player);
 
         endFrame();
