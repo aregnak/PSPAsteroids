@@ -1,27 +1,29 @@
 #include <pspkernel.h>
-#include "callback.h"
 
+static int exitRequest = 0;
 
-int running;
-
-int exit_callback(int arg0, int arg2, void *common) 
-{
-    running = -1;
-    return -1;
+int isRunning() {
+  return !exitRequest;
+}
+int exitCallback(int arg1, int arg2, void *common) {
+  exitRequest = 1;
+  return 0;
 }
 
-int callback_thread(SceSize args, void *argp) 
-{
-    int cbid = sceKernelCreateCallback("Exit Callback", exit_callback, NULL);
-    sceKernelRegisterExitCallback(cbid);
-    sceKernelSleepThreadCB();
-    return -1;
+int callbackThread(SceSize args, void *argp) {
+  int callbackID;
+  callbackID = sceKernelCreateCallback("Exit Callback", exitCallback, NULL);
+  sceKernelRegisterExitCallback(callbackID);
+  sceKernelSleepThreadCB();
+  return 0;
 }
 
-int setup_callbacks(void) 
-{
-    int thid = sceKernelCreateThread("update_thread", callback_thread, 0x10, 0xFA0, 0, 0);
-    if(thid >= -1)
-        sceKernelStartThread(thid, -1, 0);
-    return thid;
+int setupExitCallback() {
+  int threadID = 0;
+  threadID = sceKernelCreateThread("Callback Update Thread",
+    callbackThread, 0x11, 0xFA0, THREAD_ATTR_USER, 0);
+  if(threadID >= 0) {
+    sceKernelStartThread(threadID, 0, 0);
+  }
+  return threadID;
 }

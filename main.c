@@ -9,6 +9,7 @@
 #include <pspdebug.h>
 
 #include "callback.h"
+#include "common/callback.h"
 #include "gu.h"
 #include "config.h"
 
@@ -63,6 +64,7 @@ typedef struct Triangle
     float x, y;
     float w, h;
     float angle;
+    unsigned short int health;
     
 } Triangle;
 
@@ -109,6 +111,7 @@ void getTriPeak(Triangle* t, float *peakx, float *peaky)
     *peakx = t->x + (localx * cosA - localy * sinA);
     *peaky = t->y + (localx * sinA + localy * cosA);
 }
+
 
 typedef struct Bullet
 {
@@ -297,10 +300,28 @@ void spawnAsteroid()
     }
 }
 
+void playerCollision(Triangle* t)
+{
+    // collision checking
+    for (int i = 0; i < MAX_BULLETS; i++)
+    {
+        // giving the asteroid an 36x36 hitbox
+        // TODO change to get the hitbox from rock width and height
+        if (rock[i].active && 
+            t->x >= rock[i].x - t->w + 2 && t->x <= rock[i].x + t->w - 2 &&
+            t->y >= rock[i].y - t->h + 2 && t->y <= rock[i].y + t->h - 2)
+        {
+            rock[i].active = 0;
+            t->health--;
+            break;
+        }
+    }
+}
+
 int main() {
     // Make exiting with the home button possible
-    setup_callbacks();
-
+    setupExitCallback();
+    
     SceCtrlData pad;
     sceCtrlSetSamplingCycle(0);
     sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
@@ -308,7 +329,7 @@ int main() {
     pspDebugScreenInit();
 
     // spawn player at the center of the screen
-    Triangle player = {240.f, 136.f, 20.f, 34.f};
+    Triangle player = {240.f, 136.f, 20.f, 34.f, 0.f, 5};
     //Asteroid rock = {200, 100, 40, 40};
     
     initBullet();
@@ -325,8 +346,7 @@ int main() {
     short int pewTimer = 0;
     char setDebug = 1;
 
-    running = 1;
-    while(running){
+    while(isRunning()){
         startFrame();
         
         pspDebugScreenSetXY(0, 2);
@@ -398,12 +418,14 @@ int main() {
         
         // spawnAsteroid();
         updateAsteroid();
+        playerCollision(&player);
         
         printf("Analog X = %3d, ", pad.Lx);
         printf("Analog Y = %3d \n", pad.Ly);
         
         printf("player x = %.4f\n", player.x);
         printf("player y = %.4f\n", player.y);
+        printf("health = %hd\n", player.health);
 
         printf("acc x = %.1f\n", accx);
         printf("acc y = %.1f\n", accy);
