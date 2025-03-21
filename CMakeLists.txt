@@ -2,7 +2,18 @@ cmake_minimum_required(VERSION 3.31)
 
 project(Asteroids)
 
-add_executable(${PROJECT_NAME} main.c)
+include_directories(
+	${CMAKE_SOURCE_DIR}/common
+	${CMAKE_SOURCE_DIR}/graphics
+)
+
+set(SOURCES
+	main.c
+	${CMAKE_SOURCE_DIR}/common/callback.c
+	${CMAKE_SOURCE_DIR}/graphics/gu.c
+)
+
+add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     pspgu

@@ -1,0 +1,9 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#define BUFFER_WIDTH 512
+#define BUFFER_HEIGHT 272
+#define SCREEN_WIDTH 480
+#define SCREEN_HEIGHT BUFFER_HEIGHT
+
+#endif // CONFIG_H
