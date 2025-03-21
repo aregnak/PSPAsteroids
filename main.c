@@ -14,7 +14,10 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
 #define BUFFER_HEIGHT 272
 #define SCREEN_WIDTH 480
 #define SCREEN_HEIGHT BUFFER_HEIGHT
+
 #define MAX_BULLETS 20
+#define AST_VERTS 12
+#define MAX_AST 10
 
 #define printf pspDebugScreenPrintf // don't need stdlib anyway
 
@@ -137,7 +140,7 @@ void drawTriangle(Triangle* t)
     sceGuDrawArray(GU_LINE_STRIP, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, 4, 0, verts);
 }
 
-void getTriPeak(Triangle *t, float *peakx, float *peaky)
+void getTriPeak(Triangle* t, float *peakx, float *peaky)
 {
     float localx = 0;
     float localy = t->h / 2;
@@ -149,6 +152,101 @@ void getTriPeak(Triangle *t, float *peakx, float *peaky)
     *peaky = t->y + (localx * sinA + localy * cosA);
 }
 
+typedef struct Asteroid
+{
+    float x, y;
+    float w, h;
+    float angle;
+    // float velx = (rand() % 200) - 100;
+    // float vely = (rand() % 200) - 100;
+    char active;
+} Asteroid;
+
+Asteroid rock[MAX_AST] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0};
+
+void drawAsteroid(Asteroid* a)
+{
+    // allocate enough memory for 11 verticles for a nice looking asteroid
+    Vertex* verts = (Vertex*)sceGuGetMemory(AST_VERTS * sizeof(Vertex));
+
+    // Calculate the half-width and half-height for centering
+    float halfW = a->w / 2;
+    float halfH = a->h / 2;
+
+    // Define the vertices relative to the center of the triangle
+    float vx[AST_VERTS] = {
+        -halfW * 0.8,
+        0,
+        halfW * 0.5,
+        halfW * 0.60, 
+        halfW, 
+        halfW * 0.25, 
+        halfW * 0.33, 
+        -halfW * 0.65, 
+        -halfW * 0.55, 
+        -halfW, 
+        -halfW * 0.6, 
+        -halfW * 0.80}; // x-coordinates
+
+    float vy[AST_VERTS] = {
+        -halfH * 0.95, 
+        -halfH * 0.5, 
+        -halfH * 0.75, 
+        0, 
+        halfH * 0.4, 
+        halfH * 0.5, 
+        halfH, 
+        halfH * 0.9, 
+        halfH * 0.4, 
+        0, 
+        -halfH * 0.45, 
+        -halfH * 0.95}; // y-coordinates
+
+    // Apply rotation transformation to each vertex
+    float cosA = cosf(a->angle); 
+    float sinA = sinf(a->angle); 
+
+    for (int i = 0; i < AST_VERTS; i++)
+    {
+        // Rotate the vertex
+        float xRot = vx[i] * cosA - vy[i] * sinA;
+        float yRot = vx[i] * sinA + vy[i] * cosA;
+
+        // Translate the vertex to the triangle's position
+        verts[i].x = (short)(a->x + xRot);
+        verts[i].y = (short)(a->y + yRot);
+    }
+    
+    sceGuColor(0xFFFFFFFF); // colors are ABGR
+    sceGuDrawArray(GU_LINE_STRIP, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, AST_VERTS, 0, verts);
+}
+
+void initAsteroid()
+{
+    for (int i = 0; i < 3; i++)
+    {
+        rock[i].active = 1;     
+    } 
+}
+
+void moveAsteroid()
+{
+    
+}
+
+void updateAsteroid()
+{
+    for (int i = 0; i < MAX_AST; i++)
+    {
+        if (rock[i].active)
+        {
+            moveAsteroid(&rock[i]);
+
+            drawAsteroid(&rock[i]);
+        }
+    }
+}
+
 typedef struct Bullet
 {
     float x, y;
@@ -158,7 +256,8 @@ typedef struct Bullet
 
 } Bullet;
 
-Bullet pew[MAX_BULLETS] = {0.f, 0.f, 0.f, 1.f, 0.f};
+// create global Bullet object
+Bullet pew[MAX_BULLETS] = {0.f, 0.f, 0.f, 0.f, 0};
 
 void initBullet()
 {
@@ -185,7 +284,7 @@ void moveBullet(Bullet *b)
     b->y += sinf(b->angle) * b->speed;
 }
 
-void updateAndDrawBullets()
+void updateBullets()
 {
     for (int i = 0; i < MAX_BULLETS; i++)
     {
@@ -200,30 +299,31 @@ void updateAndDrawBullets()
             if (pew[i].x < 0 || pew[i].x > SCREEN_WIDTH ||
                 pew[i].y < 0 || pew[i].y > SCREEN_HEIGHT)
             {
+                // "remove" the bullet
                 pew[i].active = 0;
             }
         }
     }
 }
 
-
-void handleArea(float *playerx, float *playery)
+// loop around the screen if at the edges
+void handleArea(float *x, float *y)
 {
-    if (*playerx <= -22.f)
+    if (*x <= -22.f)
     {
-        *playerx = 480.f;    
+        *x = 480.f;    
     }
-    else if (*playerx >= (float)SCREEN_WIDTH)
+    else if (*x >= (float)SCREEN_WIDTH)
     {
-        *playerx = 0.f;    
+        *x = 0.f;    
     }
-    else if (*playery <= -36.f)
+    else if (*y <= -36.f)
     {
-        *playery = 272.f;    
+        *y = 272.f;    
     }
-    else if (*playery >= (float)SCREEN_HEIGHT)
+    else if (*y >= (float)SCREEN_HEIGHT)
     {
-        *playery = 0.f;    
+        *y = 0.f;    
     }
 }
 
@@ -248,6 +348,7 @@ int main() {
 
     // spawn player at the center of the screen
     Triangle player = {240.f, 136.f, 20.f, 34.f};
+    Asteroid rock = {200, 100, 40, 40};
     
     initBullet();
 
@@ -272,7 +373,6 @@ int main() {
         accx -= (pad.Lx  - 128) / 50;
         accy -= (pad.Ly  - 128) / 50;
 
-
         velx = (accx - pad.Lx) / 80; // immitate acceleration and no gravity  
         vely = (accy - pad.Ly) / 80;                                          
                 
@@ -283,19 +383,20 @@ int main() {
         
         handleArea(&player.x, &player.y);
         
-        updateAndDrawBullets();
+        updateBullets();
 
         if (pad.Buttons != 0)
         {
             if (pad.Buttons & PSP_CTRL_LTRIGGER)
             {
-                player.angle -= 0.07f;
+                player.angle -= 0.06f;
             }
             if (pad.Buttons & PSP_CTRL_RTRIGGER)
             {
-                player.angle += 0.07f;
+                player.angle += 0.06f;
             }
 
+            //make rotation a little nicer
             if (player.angle < 0) player.angle += 2 * M_PI;
             if (player.angle >= 2 * M_PI) player.angle -= 2 * M_PI;
 
@@ -328,6 +429,8 @@ int main() {
         {
             pewTimer--;
         }
+        
+        rock.angle+= 0.01; 
 
         printf("Analog X = %3d, ", pad.Lx);
         printf("Analog Y = %3d \n", pad.Ly);
@@ -337,9 +440,11 @@ int main() {
 
         printf("acc x = %.1f\n", accx);
         printf("acc y = %.1f\n", accy);
+        
         printf("total pews %zuB\n", sizeof(pew));
-        printf("active pews %zuB\n", sizeof(pew) / sizeof(pew[0]));
-
+        printf("total rocks %zuB\n", sizeof(rock));
+        
+        drawAsteroid(&rock);
         drawTriangle(&player);
 
         endFrame();
