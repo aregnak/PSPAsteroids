@@ -25,14 +25,6 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
 
 #define printf pspDebugScreenPrintf // don't need stdlib anyway
 
-
-// // measure memory execution time
-// uint64_t getCurrentTime() {
-//     uint64_t time;
-//     asm volatile("mfc0 %0, $9" : "=r"(time)); // Read MIPS COP0 count register
-//     return time;
-// }
-
 // loop around the screen if at the edges
 void handleArea(float *x, float *y, short int sHeight, short int sWidth)
 {
@@ -132,10 +124,18 @@ typedef struct Bullet
 
 } Bullet;
 
-
 void initBullet(Bullet* pew)
 {
     memset(pew, 0, sizeof(pew));
+}
+
+void resetBullet(Bullet* pew, int i)
+{
+    pew[i].active = 0;
+    pew[i].angle = 0;
+    pew[i].x = 0;
+    pew[i].y = 0;
+    pew[i].speed = 0;
 }
 
 void drawBullet(Bullet* pewp, int pIndex)
@@ -169,8 +169,8 @@ void updateBullets(Bullet* pew, short int maxPew, short int sHeight, short int s
             // Draw the bullet
             drawBullet(pew, i);
 
-            if (pew[i].x < 0 || pew[i].x > SCREEN_WIDTH ||
-                pew[i].y < 0 || pew[i].y > SCREEN_HEIGHT)
+            if (pew[i].x < 0 || pew[i].x > sWidth ||
+                pew[i].y < 0 || pew[i].y > sHeight)
             {
                 // "remove" the bullet
                 pew[i].active = 0;
@@ -263,11 +263,11 @@ void resetAsteroid(Asteroid* rock, int i)
     rock[i].vely = 0;
 }
 
-void initAsteroid(Asteroid* rock)
+void initAsteroid(Asteroid* rock, short int maxAst)
 {
     memset(rock, 0, sizeof(rock));
 
-    for (int i = 0; i < MAX_AST; i++)
+    for (int i = 0; i < maxAst; i++)
     {
         resetAsteroid(rock, i);
     }
@@ -319,7 +319,7 @@ void spawnAsteroid(Asteroid* rock, short int sHeight, short int sWidth)
     }
 }
 
-void updateAsteroid(Asteroid* rock, Bullet* pew, short int maxAst, short int sHeight, short int sWidth)
+void updateAsteroid(Asteroid* rock, Bullet* pew, short int maxAst, short int maxPew, short int sHeight, short int sWidth)
 {
     for (int i = 0; i < maxAst; i++)
     {
@@ -330,12 +330,12 @@ void updateAsteroid(Asteroid* rock, Bullet* pew, short int maxAst, short int sHe
 
             rock[i].angle += 0.01f;
 
-            drawAsteroid(rock, i);
-
             handleArea(&rock[i].x, &rock[i].y, sHeight, sWidth);
 
+            drawAsteroid(rock, i);
+
             // collision checking with bullet
-            for (int j = 0; j < MAX_BULLETS; j++)
+            for (int j = 0; j < maxPew; j++)
             {
                 // giving the asteroid an 36x36 hitbox
                 // TODO change to get the hitbox from rock width and height
@@ -343,8 +343,8 @@ void updateAsteroid(Asteroid* rock, Bullet* pew, short int maxAst, short int sHe
                     pew[j].x >= rock[i].x - 18 && pew[j].x <= rock[i].x + 18 &&
                     pew[j].y >= rock[i].y - 18 && pew[j].y <= rock[i].y + 18)
                 {
-                    rock[i].active = 0;
-                    pew[j].active = 0;
+                    resetBullet(pew, j);
+                    resetAsteroid(rock, i);
                     spawnAsteroid(rock, sHeight, sWidth);
 
                     break;
@@ -354,7 +354,7 @@ void updateAsteroid(Asteroid* rock, Bullet* pew, short int maxAst, short int sHe
     }
 }
 
-void playerCollision(Triangle* tri, Asteroid* rock, short int maxAst)
+void playerCollision(Triangle* tri, Asteroid* rock, short int maxAst, short int sHeight, short int sWidth)
 {
     // collision checking
     for (int i = 0; i < maxAst; i++)
@@ -367,7 +367,7 @@ void playerCollision(Triangle* tri, Asteroid* rock, short int maxAst)
         {
             resetAsteroid(rock, i);
             // t->health--;
-            spawnAsteroid(rock, SCREEN_HEIGHT, SCREEN_WIDTH);
+            spawnAsteroid(rock, sHeight, sWidth);
 
             break;
         }
@@ -379,11 +379,11 @@ void playerHealthCheck()
 
 }
 
-void initGame(Asteroid* rock)
+void initGame(Asteroid* rock, short int sHeight, short int sWidth)
 {
     for (int i = 0; i < 3; i++)
     {
-        spawnAsteroid(rock, SCREEN_HEIGHT, SCREEN_WIDTH);
+        spawnAsteroid(rock, sHeight, sWidth);
     }
 }
 
@@ -404,17 +404,15 @@ int main()
     Bullet pew[MAX_BULLETS] = { 0 };
 
 
-    initAsteroid(rock);
+    initAsteroid(rock, MAX_AST);
     initBullet(pew);
 
-    initGame(rock);
+    initGame(rock, SCREEN_HEIGHT, SCREEN_WIDTH);
 
     // Setup the library used for rendering
     initGu();
 
     srandom(time(NULL));
-
-    uint64_t startTime, endTime;
 
     // default, not moving
     float accx = 128.f;
@@ -426,8 +424,6 @@ int main()
     while(isRunning())
     {
         startFrame();
-
-        // startTime = getCurrentTime();
 
         pspDebugScreenSetXY(0, 2);
         sceCtrlReadBufferPositive(&pad, 1);
@@ -493,14 +489,13 @@ int main()
             pewTimer--;
         }
 
-        updateAsteroid(rock, pew, MAX_AST, SCREEN_HEIGHT, SCREEN_WIDTH);
-        playerCollision(&player, rock, MAX_AST);
+        updateAsteroid(rock, pew, MAX_AST, MAX_BULLETS, SCREEN_HEIGHT, SCREEN_WIDTH);
+        playerCollision(&player, rock, MAX_AST, SCREEN_HEIGHT, SCREEN_WIDTH);
 
         drawTriangle(&player);
 
         endFrame();
 
-        // endTime = getCurrentTime();
 
         printf("Analog X = %3d, ", pad.Lx);
         printf("Analog Y = %3d \n", pad.Ly);
@@ -517,10 +512,8 @@ int main()
             }
         }
 
-        // printf("Execution time: %llu cycles\n", endTime - startTime);
-
-        // size_t freeMem = sceKernelTotalFreeMemSize();
-        // printf("Free memory: %zu\n", freeMem);
+        size_t freeMem = sceKernelTotalFreeMemSize();
+        printf("Free memory: %zu\n", freeMem);
     }
 
     return 0;
