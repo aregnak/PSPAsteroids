@@ -174,8 +174,8 @@ void updateBullets(Bullet* pew, short int maxPew, short int sHeight, short int s
             // Draw the bullet
             drawBullet(pew, i);
 
-            if (pew[i].x < 0 || pew[i].x > sWidth ||
-                pew[i].y < 0 || pew[i].y > sHeight)
+            if (pew[i].x < 0 - 20 || pew[i].x > sWidth + 20 ||
+                pew[i].y < 0 - 20 || pew[i].y > sHeight + 20)
             {
                 // "remove" the bullet
                 pew[i].active = 0;
@@ -423,6 +423,7 @@ int main()
     float velx = 0.f, vely = 0.f;
 
     short int pewTimer = 0;
+    short int asteroidTimer = 200;
 
     while(isRunning())
     {
@@ -490,6 +491,18 @@ int main()
         if (pewTimer > 0)
         {
             pewTimer--;
+        }
+
+        // periodically spawn asteroids
+        // ! make this a better system ts sucks rn
+        if (asteroidTimer > 0)
+        {
+            asteroidTimer--;
+        }
+        else
+        {
+            spawnAsteroid(rock, SCREEN_HEIGHT, SCREEN_WIDTH);
+            asteroidTimer = 500;
         }
 
         updateAsteroid(rock, pew, MAX_AST, MAX_BULLETS, SCREEN_HEIGHT, SCREEN_WIDTH);
