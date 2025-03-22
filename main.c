@@ -1,6 +1,7 @@
 #include <complex.h>
 #include <math.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <pspkernel.h>
 #include <pspgu.h>
@@ -244,13 +245,23 @@ void drawAsteroid(Asteroid* a)
     sceGuDrawArray(GU_LINE_STRIP, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, AST_VERTS, 0, verts);
 }
 
+void resetAsteroid(int i)
+{
+    rock[i].active = 0;
+    rock[i].x = 0;
+    rock[i].y = 0;
+    rock[i].w = 0;
+    rock[i].h = 0;
+    rock[i].angle = 0;
+    rock[i].velx = 0;
+    rock[i].vely = 0;
+}
+
 void initAsteroid()
 {
     for (int i = 0; i < MAX_AST; i++)
     {
-        rock[i].active = 0;
-        rock[i].velx = (rand() % 200) - 100;
-        rock[i].vely = (rand() % 200) - 100;
+        resetAsteroid(i);
     }
 }
 
@@ -259,27 +270,27 @@ void spawnAsteroid()
     short int aX;
     short int aY;
 
-    short int side = rand() % 4;
+    short int side = random() % 4;
 
     // spawn on random side but idk if this works well or not
     // todo: fix ts
     switch (side)
     {
         case 0:
-            aX = rand() % SCREEN_WIDTH;
+            aX = random() % SCREEN_WIDTH;
             aY = -40;
             break; // top
         case 1:
-            aX = rand() % SCREEN_WIDTH;
+            aX = random() % SCREEN_WIDTH;
             aY = SCREEN_HEIGHT + 40;
             break; // bottom
         case 2:
             aX = -40;
-            aY = rand() % SCREEN_HEIGHT;
+            aY = random() % SCREEN_HEIGHT;
             break; // left
         case 3:
             aX = SCREEN_WIDTH + 40;
-            aY = rand() % SCREEN_HEIGHT;
+            aY = random() % SCREEN_HEIGHT;
             break; // right
     }
 
@@ -293,6 +304,8 @@ void spawnAsteroid()
             rock[i].w = 40;
             rock[i].h = 40;
             rock[i].active = 1;
+            rock[i].velx = (random() % 200) - 100;
+            rock[i].vely = (random() % 200) - 100;
             break;
         }
     }
@@ -386,6 +399,8 @@ int main()
 
     // Setup the library used for rendering
     initGu();
+
+    srandom(time(NULL));
 
     // default, not moving
     float accx = 128.f;
