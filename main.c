@@ -124,42 +124,42 @@ typedef struct Bullet
 
 } Bullet;
 
-// create global Bullet object
-Bullet pew[MAX_BULLETS] = {0.f, 0.f, 0.f, 0.f, 0};
 
-void initBullet()
+void initBullet(Bullet* pew)
 {
     memset(pew, 0, sizeof(pew));
 }
 
-void drawBullet(Bullet *b)
+void drawBullet(Bullet* pewp, int pIndex)
 {
+    Bullet* pew = &pewp[pIndex];
+
     Vertex* p = (Vertex*)sceGuGetMemory(sizeof(Vertex));
 
-    p[0].x = b->x;
-    p[0].y = b->y;
+    p[0].x = pew->x;
+    p[0].y = pew->y;
 
     sceGuColor(0xFFFFFFFF); // colors are ABGR
     sceGuDrawArray(GU_POINTS, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, 1, 0, p);
 }
 
-void moveBullet(Bullet *b)
+void moveBullet(Bullet* pew)
 {
-    b->x += cosf(b->angle) * b->speed;
-    b->y += sinf(b->angle) * b->speed;
+    pew->x += cosf(pew->angle) * pew->speed;
+    pew->y += sinf(pew->angle) * pew->speed;
 }
 
-void updateBullets()
+void updateBullets(Bullet* pew)
 {
     for (int i = 0; i < MAX_BULLETS; i++)
     {
         if (pew[i].active)
         {
             // Move the bullet
-            moveBullet(&pew[i]);
+            moveBullet(pew);
 
             // Draw the bullet
-            drawBullet(&pew[i]);
+            drawBullet(pew, i);
 
             if (pew[i].x < 0 || pew[i].x > SCREEN_WIDTH ||
                 pew[i].y < 0 || pew[i].y > SCREEN_HEIGHT)
@@ -181,10 +181,6 @@ typedef struct Asteroid
     // short int id;
     char active;
 } Asteroid;
-
-//Asteroid rock[MAX_AST] = { 0 };
-
-// Vertex asteroidVerts[MAX_AST][AST_VERTS];
 
 void drawAsteroid(Asteroid* r, int rIndex)
 {
@@ -261,6 +257,8 @@ void resetAsteroid(Asteroid* rock, int i)
 
 void initAsteroid(Asteroid* rock)
 {
+    memset(rock, 0, sizeof(rock));
+
     for (int i = 0; i < MAX_AST; i++)
     {
         resetAsteroid(rock, i);
@@ -313,7 +311,7 @@ void spawnAsteroid(Asteroid* rock)
     }
 }
 
-void updateAsteroid(Asteroid* rock)
+void updateAsteroid(Asteroid* rock, Bullet* pew)
 {
     for (int i = 0; i < MAX_AST; i++)
     {
@@ -395,10 +393,11 @@ int main()
     // spawn player at the center of the screen
     Triangle player = {240.f, 136.f, 20.f, 34.f, 0.f};
     Asteroid rock[MAX_AST] = { 0 };
+    Bullet pew[MAX_BULLETS] = { 0 };
 
     initGame(rock);
     initAsteroid(rock);
-    initBullet();
+    initBullet(pew);
 
     // Setup the library used for rendering
     initGu();
@@ -432,7 +431,7 @@ int main()
 
         handleArea(&player.x, &player.y);
 
-        updateBullets();
+        updateBullets(pew);
 
         if (pad.Buttons != 0)
         {
@@ -485,7 +484,7 @@ int main()
         }
 
         // spawnAsteroid();
-        updateAsteroid(rock);
+        updateAsteroid(rock, pew);
         playerCollision(&player, rock);
 
         printf("Analog X = %3d, ", pad.Lx);
