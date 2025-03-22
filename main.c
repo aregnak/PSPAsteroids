@@ -20,19 +20,18 @@ PSP_MODULE_INFO("shape", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
 
 #define MAX_BULLETS 20
-#define AST_VERTS 12
 #define MAX_AST 10
 
 #define printf pspDebugScreenPrintf // don't need stdlib anyway
 
 // loop around the screen if at the edges
-void handleArea(float *x, float *y)
+void handleArea(float *x, float *y, short int sHeight, short int sWidth)
 {
     if (*x <= -22.f)
     {
         *x = 480.f;
     }
-    else if (*x >= (float)SCREEN_WIDTH)
+    else if (*x >= (float)sWidth)
     {
         *x = 0.f;
     }
@@ -40,7 +39,7 @@ void handleArea(float *x, float *y)
     {
         *y = 272.f;
     }
-    else if (*y >= (float)SCREEN_HEIGHT)
+    else if (*y >= (float)sHeight)
     {
         *y = 0.f;
     }
@@ -149,7 +148,7 @@ void moveBullet(Bullet* pew)
     pew->y += sinf(pew->angle) * pew->speed;
 }
 
-void updateBullets(Bullet* pew)
+void updateBullets(Bullet* pew, short int maxPew, short int sHeight, short int sWidth)
 {
     for (int i = 0; i < MAX_BULLETS; i++)
     {
@@ -187,7 +186,7 @@ void drawAsteroid(Asteroid* r, int rIndex)
     Asteroid* rock = &r[rIndex];
 
     // allocate enough memory for 11 verticles for a nice looking asteroid
-    Vertex* verts = (Vertex*)sceGuGetMemory(AST_VERTS * sizeof(Vertex));
+    Vertex* verts = (Vertex*)sceGuGetMemory(12 * sizeof(Vertex));
 
     // Vertex* verts = asteroidVerts[a->id];
 
@@ -196,7 +195,7 @@ void drawAsteroid(Asteroid* r, int rIndex)
     float halfH = rock->h / 2;
 
     // Define the vertices relative to the center of the triangle
-    float vx[AST_VERTS] = {
+    float vx[12] = {
         -halfW * 0.8,
         0,
         halfW * 0.5,
@@ -210,7 +209,7 @@ void drawAsteroid(Asteroid* r, int rIndex)
         -halfW * 0.6,
         -halfW * 0.80}; // x-coordinates
 
-    float vy[AST_VERTS] = {
+    float vy[12] = {
         -halfH * 0.95,
         -halfH * 0.5,
         -halfH * 0.75,
@@ -228,7 +227,7 @@ void drawAsteroid(Asteroid* r, int rIndex)
     float cosA = cosf(rock->angle);
     float sinA = sinf(rock->angle);
 
-    for (int i = 0; i < AST_VERTS; i++)
+    for (int i = 0; i < 12; i++)
     {
         // Rotate the vertex
         float xRot = vx[i] * cosA - vy[i] * sinA;
@@ -240,7 +239,7 @@ void drawAsteroid(Asteroid* r, int rIndex)
     }
 
     sceGuColor(0xFFFFFFFF); // colors are ABGR
-    sceGuDrawArray(GU_LINE_STRIP, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, AST_VERTS, 0, verts);
+    sceGuDrawArray(GU_LINE_STRIP, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, 12, 0, verts);
 }
 
 void resetAsteroid(Asteroid* rock, int i)
@@ -265,7 +264,7 @@ void initAsteroid(Asteroid* rock)
     }
 }
 
-void spawnAsteroid(Asteroid* rock)
+void spawnAsteroid(Asteroid* rock, short int sHeight, short int sWidth)
 {
     short int aX;
     short int aY;
@@ -311,9 +310,9 @@ void spawnAsteroid(Asteroid* rock)
     }
 }
 
-void updateAsteroid(Asteroid* rock, Bullet* pew)
+void updateAsteroid(Asteroid* rock, Bullet* pew, short int maxAst, short int sHeight, short int sWidth)
 {
-    for (int i = 0; i < MAX_AST; i++)
+    for (int i = 0; i < maxAst; i++)
     {
         if (rock[i].active)
         {
@@ -324,7 +323,7 @@ void updateAsteroid(Asteroid* rock, Bullet* pew)
 
             drawAsteroid(rock, i);
 
-            handleArea(&rock[i].x, &rock[i].y);
+            handleArea(&rock[i].x, &rock[i].y, sHeight, sWidth);
 
             // collision checking with bullet
             for (int j = 0; j < MAX_BULLETS; j++)
@@ -337,7 +336,7 @@ void updateAsteroid(Asteroid* rock, Bullet* pew)
                 {
                     rock[i].active = 0;
                     pew[j].active = 0;
-                    spawnAsteroid(rock);
+                    spawnAsteroid(rock, sHeight, sWidth);
 
                     break;
                 }
@@ -346,10 +345,10 @@ void updateAsteroid(Asteroid* rock, Bullet* pew)
     }
 }
 
-void playerCollision(Triangle* tri, Asteroid* rock)
+void playerCollision(Triangle* tri, Asteroid* rock, short int maxAst)
 {
     // collision checking
-    for (int i = 0; i < MAX_AST; i++)
+    for (int i = 0; i < maxAst; i++)
     {
         // giving the asteroid an 36x36 hitbox
         // TODO change to get the hitbox from rock width and height
@@ -359,7 +358,7 @@ void playerCollision(Triangle* tri, Asteroid* rock)
         {
             resetAsteroid(rock, i);
             // t->health--;
-            spawnAsteroid(rock);
+            spawnAsteroid(rock, SCREEN_HEIGHT, SCREEN_WIDTH);
 
             break;
         }
@@ -375,7 +374,7 @@ void initGame(Asteroid* rock)
 {
     for (int i = 0; i < 3; i++)
     {
-        spawnAsteroid(rock);
+        spawnAsteroid(rock, SCREEN_HEIGHT, SCREEN_WIDTH);
     }
 }
 
@@ -429,9 +428,9 @@ int main()
 
         handleSpeed(&accx, &accy);
 
-        handleArea(&player.x, &player.y);
+        handleArea(&player.x, &player.y, SCREEN_HEIGHT, SCREEN_WIDTH);
 
-        updateBullets(pew);
+        updateBullets(pew, MAX_BULLETS, SCREEN_HEIGHT, SCREEN_WIDTH);
 
         if (pad.Buttons != 0)
         {
@@ -472,10 +471,6 @@ int main()
                     }
                 }
             }
-            if (pad.Buttons & PSP_CTRL_CIRCLE)
-            {
-                spawnAsteroid(rock);
-            }
         }
 
         if (pewTimer > 0)
@@ -483,9 +478,8 @@ int main()
             pewTimer--;
         }
 
-        // spawnAsteroid();
-        updateAsteroid(rock, pew);
-        playerCollision(&player, rock);
+        updateAsteroid(rock, pew, MAX_AST, SCREEN_HEIGHT, SCREEN_WIDTH);
+        playerCollision(&player, rock, MAX_AST);
 
         printf("Analog X = %3d, ", pad.Lx);
         printf("Analog Y = %3d \n", pad.Ly);
