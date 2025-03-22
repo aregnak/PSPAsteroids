@@ -287,7 +287,7 @@ void spawnAsteroid()
     {
         if (!rock[i].active)
         {
-            rock[i].id = i;
+            // rock[i].id = i;
             rock[i].x = aX;
             rock[i].y = aY;
             rock[i].w = 40;
@@ -336,7 +336,7 @@ void updateAsteroid()
 void playerCollision(Triangle* t)
 {
     // collision checking
-    for (int i = 0; i < MAX_BULLETS; i++)
+    for (int i = 0; i < MAX_AST; i++)
     {
         // giving the asteroid an 36x36 hitbox
         // TODO change to get the hitbox from rock width and height
