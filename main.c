@@ -124,11 +124,6 @@ typedef struct Bullet
 
 } Bullet;
 
-void initBullet(Bullet* pew)
-{
-    memset(pew, 0, sizeof(pew));
-}
-
 void resetBullet(Bullet* pew, int i)
 {
     pew[i].active = 0;
@@ -136,6 +131,14 @@ void resetBullet(Bullet* pew, int i)
     pew[i].x = 0;
     pew[i].y = 0;
     pew[i].speed = 0;
+}
+
+void initBullet(Bullet* pew, short int maxPew)
+{
+    for (int i = 0; i < maxPew; i++)
+    {
+        resetBullet(pew, i);
+    }
 }
 
 void drawBullet(Bullet* pewp, int pIndex)
@@ -151,8 +154,10 @@ void drawBullet(Bullet* pewp, int pIndex)
     sceGuDrawArray(GU_POINTS, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, 1, 0, p);
 }
 
-void moveBullet(Bullet* pew)
+void moveBullet(Bullet* pewp, int i)
 {
+    Bullet* pew = &pewp[i];
+
     pew->x += cosf(pew->angle) * pew->speed;
     pew->y += sinf(pew->angle) * pew->speed;
 }
@@ -164,7 +169,7 @@ void updateBullets(Bullet* pew, short int maxPew, short int sHeight, short int s
         if (pew[i].active)
         {
             // Move the bullet
-            moveBullet(pew);
+            moveBullet(pew, i);
 
             // Draw the bullet
             drawBullet(pew, i);
@@ -265,8 +270,6 @@ void resetAsteroid(Asteroid* rock, int i)
 
 void initAsteroid(Asteroid* rock, short int maxAst)
 {
-    memset(rock, 0, sizeof(rock));
-
     for (int i = 0; i < maxAst; i++)
     {
         resetAsteroid(rock, i);
@@ -405,7 +408,7 @@ int main()
 
 
     initAsteroid(rock, MAX_AST);
-    initBullet(pew);
+    initBullet(pew, MAX_BULLETS);
 
     initGame(rock, SCREEN_HEIGHT, SCREEN_WIDTH);
 
