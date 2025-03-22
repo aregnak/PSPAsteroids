@@ -2,13 +2,14 @@
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #include <pspkernel.h>
 #include <pspgu.h>
 #include <pspdisplay.h>
 #include <pspctrl.h>
 #include <pspdebug.h>
-#include <string.h>
+// #include <psptypes.h>
 
 #include "callback.h"
 #include "common/callback.h"
@@ -23,6 +24,14 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
 #define MAX_AST 10
 
 #define printf pspDebugScreenPrintf // don't need stdlib anyway
+
+
+// // measure memory execution time
+// uint64_t getCurrentTime() {
+//     uint64_t time;
+//     asm volatile("mfc0 %0, $9" : "=r"(time)); // Read MIPS COP0 count register
+//     return time;
+// }
 
 // loop around the screen if at the edges
 void handleArea(float *x, float *y, short int sHeight, short int sWidth)
@@ -276,20 +285,20 @@ void spawnAsteroid(Asteroid* rock, short int sHeight, short int sWidth)
     switch (side)
     {
         case 0:
-            aX = random() % SCREEN_WIDTH;
+            aX = random() % sWidth;
             aY = -40;
             break; // top
         case 1:
-            aX = random() % SCREEN_WIDTH;
-            aY = SCREEN_HEIGHT + 40;
+            aX = random() % sWidth;
+            aY = sHeight + 40;
             break; // bottom
         case 2:
             aX = -40;
-            aY = random() % SCREEN_HEIGHT;
+            aY = random() % sHeight;
             break; // left
         case 3:
-            aX = SCREEN_WIDTH + 40;
-            aY = random() % SCREEN_HEIGHT;
+            aX = sWidth + 40;
+            aY = random() % sHeight;
             break; // right
     }
 
@@ -394,14 +403,18 @@ int main()
     Asteroid rock[MAX_AST] = { 0 };
     Bullet pew[MAX_BULLETS] = { 0 };
 
-    initGame(rock);
+
     initAsteroid(rock);
     initBullet(pew);
+
+    initGame(rock);
 
     // Setup the library used for rendering
     initGu();
 
     srandom(time(NULL));
+
+    uint64_t startTime, endTime;
 
     // default, not moving
     float accx = 128.f;
@@ -413,6 +426,8 @@ int main()
     while(isRunning())
     {
         startFrame();
+
+        // startTime = getCurrentTime();
 
         pspDebugScreenSetXY(0, 2);
         sceCtrlReadBufferPositive(&pad, 1);
@@ -481,18 +496,18 @@ int main()
         updateAsteroid(rock, pew, MAX_AST, SCREEN_HEIGHT, SCREEN_WIDTH);
         playerCollision(&player, rock, MAX_AST);
 
+        drawTriangle(&player);
+
+        endFrame();
+
+        // endTime = getCurrentTime();
+
         printf("Analog X = %3d, ", pad.Lx);
         printf("Analog Y = %3d \n", pad.Ly);
 
         printf("player x = %.4f\n", player.x);
         printf("player y = %.4f\n", player.y);
         // printf("health = %hd\n", player.health);
-
-        printf("acc x = %.1f\n", accx);
-        printf("acc y = %.1f\n", accy);
-
-        printf("total pews %zuB\n", sizeof(pew));
-        printf("total rocks %zuB\n", sizeof(rock));
 
         for (int x = 0; x < MAX_AST; x++)
         {
@@ -502,9 +517,10 @@ int main()
             }
         }
 
-        drawTriangle(&player);
+        // printf("Execution time: %llu cycles\n", endTime - startTime);
 
-        endFrame();
+        // size_t freeMem = sceKernelTotalFreeMemSize();
+        // printf("Free memory: %zu\n", freeMem);
     }
 
     return 0;
