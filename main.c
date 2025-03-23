@@ -21,7 +21,7 @@ PSP_MODULE_INFO("shape", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
 
 #define MAX_BULLETS 20
-#define MAX_AST 10
+#define MAX_AST 20
 
 #define printf pspDebugScreenPrintf // don't need stdlib anyway
 
@@ -272,6 +272,7 @@ void drawAsteroid(Asteroid* r, int rIndex)
     sceGuDrawArray(GU_LINE_STRIP, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, 12, 0, verts);
 }
 
+// reset 1 asteroid
 void resetAsteroid(Asteroid* rock, int i)
 {
     rock[i].active = 0;
@@ -284,6 +285,7 @@ void resetAsteroid(Asteroid* rock, int i)
     rock[i].vely = 0;
 }
 
+// initialize asteroid array memory space
 void initAsteroid(Asteroid* rock, short int maxAst)
 {
     for (int i = 0; i < maxAst; i++)
@@ -292,15 +294,33 @@ void initAsteroid(Asteroid* rock, short int maxAst)
     }
 }
 
-void spawnAsteroid(Asteroid* rock, short int sHeight, short int sWidth)
+void spawnAsteroid(Asteroid* rock, short int aX, short int aY, short int size, short int sHeight, short int sWidth)
+{
+    for (int i = 0; i < MAX_AST; i++)
+    {
+        if (!rock[i].active)
+        {
+            // rock[i].id = i;
+            rock[i].x = aX;
+            rock[i].y = aY;
+            rock[i].w = size;
+            rock[i].h = size;
+            rock[i].active = 1;
+            rock[i].velx = (random() % 200) - 100;
+            rock[i].vely = (random() % 200) - 100;
+            break;
+        }
+    }
+}
+
+void randomAsteroidSpawn(Asteroid* rock, short int sHeight, short int sWidth)
 {
     short int aX;
     short int aY;
 
     short int side = random() % 4;
 
-    // spawn on random side but idk if this works well or not
-    // todo: fix ts
+    // spawn on random side
     switch (side)
     {
         case 0:
@@ -321,24 +341,19 @@ void spawnAsteroid(Asteroid* rock, short int sHeight, short int sWidth)
             break; // right
     }
 
-    for (int i = 0; i < MAX_AST; i++)
-    {
-        if (!rock[i].active)
-        {
-            // rock[i].id = i;
-            rock[i].x = aX;
-            rock[i].y = aY;
-            rock[i].w = 40;
-            rock[i].h = 40;
-            rock[i].active = 1;
-            rock[i].velx = (random() % 200) - 100;
-            rock[i].vely = (random() % 200) - 100;
-            break;
-        }
-    }
+    // spawn the asteroid at a random point
+    spawnAsteroid(rock, aX, aY, 40, sHeight, sWidth);
 }
 
-void updateAsteroid(Asteroid* rock, Bullet* pew, short int maxAst, short int maxPew, short int sHeight, short int sWidth)
+void splitAsteroid(Asteroid* rock, int i, short int sHeight, short int sWidth)
+{
+    short int aX = rock[i].x;
+    short int aY = rock[i].y;
+
+    spawnAsteroid(rock, aX, aY, 20, sHeight, sWidth);
+}
+
+void updateAsteroid(Asteroid* rock, Bullet* pew, short int asteroidCount, short int maxAst, short int maxPew, short int sHeight, short int sWidth)
 {
     for (int i = 0; i < maxAst; i++)
     {
@@ -365,10 +380,27 @@ void updateAsteroid(Asteroid* rock, Bullet* pew, short int maxAst, short int max
                     // delete bullet, hit asteroid
                     // spawn a new asteroid
                     // add score
-                    // !! make this better ?
+                    // TODO: split asteroid into 2 smaller asteroids
                     resetBullet(pew, j);
+
+                    // split asteroid, but if split respawn a new big asteroid
+                    if (rock[i].w != 20)
+                    {
+                        // spawn 2 small asteroids where the big one was split
+                        splitAsteroid(rock, i, sHeight, sWidth);
+                        splitAsteroid(rock, i, sHeight, sWidth);
+                    }
+                    else
+                    {
+                        if (asteroidCount < 10)
+                        {
+                            randomAsteroidSpawn(rock, sHeight, sWidth);
+                        }
+                        // spawnAsteroid(rock, 40, sHeight, sWidth);
+                    }
+
                     resetAsteroid(rock, i);
-                    spawnAsteroid(rock, sHeight, sWidth);
+
                     score++;
 
                     break;
@@ -378,7 +410,7 @@ void updateAsteroid(Asteroid* rock, Bullet* pew, short int maxAst, short int max
     }
 }
 
-void playerCollision(Triangle* tri, Asteroid* rock, short int maxAst, short int sHeight, short int sWidth)
+void playerCollision(Triangle* tri, Asteroid* rock, short int asteroidCount, short int maxAst, short int sHeight, short int sWidth)
 {
     // collision checking
     for (int i = 0; i < maxAst; i++)
@@ -391,7 +423,12 @@ void playerCollision(Triangle* tri, Asteroid* rock, short int maxAst, short int 
         {
             resetAsteroid(rock, i);
             playerHealthCheck(tri);
-            spawnAsteroid(rock, sHeight, sWidth);
+            // spawnAsteroid(rock, 40, sHeight, sWidth);
+            // spawn a random asteroid if there are less than 10 big asteroids
+            if (asteroidCount < 10)
+            {
+                randomAsteroidSpawn(rock, sHeight, sWidth);
+            }
 
             break;
         }
@@ -402,7 +439,8 @@ void initGame(Asteroid* rock, short int sHeight, short int sWidth)
 {
     for (int i = 0; i < 3; i++)
     {
-        spawnAsteroid(rock, sHeight, sWidth);
+        // spawnAsteroid(rock, 40, sHeight, sWidth);
+        randomAsteroidSpawn(rock, sHeight, sWidth);
     }
 
     score = 0;
@@ -453,6 +491,7 @@ int main()
 
     short int pewTimer = 0;
     short int asteroidTimer = 200;
+    short int activeAsteroid = 0;
 
     gameState = 1; // just in case, also for clarity
 
@@ -526,6 +565,20 @@ int main()
                 pewTimer--;
             }
 
+            activeAsteroid = 0;
+            for (int i = 0; i < MAX_AST; i++)
+            {
+                if (rock[i].active == 1 && rock[i].w == 40)
+                {
+                    activeAsteroid++;
+                }
+            }
+
+            updateAsteroid(rock, pew, activeAsteroid, MAX_AST, MAX_BULLETS, SCREEN_HEIGHT, SCREEN_WIDTH);
+            playerCollision(&player, rock, activeAsteroid, MAX_AST, SCREEN_HEIGHT, SCREEN_WIDTH);
+
+            drawTriangle(&player);
+
             // periodically spawn asteroids
             // ! make this a better system ts sucks rn
             if (asteroidTimer > 0)
@@ -534,17 +587,15 @@ int main()
             }
             else
             {
-                spawnAsteroid(rock, SCREEN_HEIGHT, SCREEN_WIDTH);
-                asteroidTimer = 500;
+                if (activeAsteroid < 10)
+                {
+                    // spawnAsteroid(rock, 40, SCREEN_HEIGHT, SCREEN_WIDTH);
+                    randomAsteroidSpawn(rock, SCREEN_HEIGHT, SCREEN_WIDTH);
+                    asteroidTimer = 500;
+                }
             }
 
-            updateAsteroid(rock, pew, MAX_AST, MAX_BULLETS, SCREEN_HEIGHT, SCREEN_WIDTH);
-            playerCollision(&player, rock, MAX_AST, SCREEN_HEIGHT, SCREEN_WIDTH);
-
-            drawTriangle(&player);
-
             endFrame();
-
 
             // printf("Analog X = %3d, ", pad.Lx);
             // printf("Analog Y = %3d \n", pad.Ly);
@@ -558,7 +609,7 @@ int main()
             // {
             //     if (rock[x].active)
             //     {
-            //         printf("rock %d pos x = %.4f y = %.4f\n", x, rock[x].x, rock[x].y);
+            //         printf("rock %d pos x = %.4f y = %.4f w = %.1f\n", x, rock[x].x, rock[x].y, rock[x].w);
             //     }
             // }
 
