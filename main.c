@@ -224,7 +224,7 @@ void drawAsteroid(Asteroid* r, int rIndex)
     float halfW = rock->w / 2;
     float halfH = rock->h / 2;
 
-    // Define the vertices relative to the center of the triangle
+    // Define the vertices relative to the center of the shape
     float vx[12] = {
         -halfW * 0.8,
         0,
@@ -456,6 +456,51 @@ void initPlayer(Triangle* player)
     player->health = 5;
 }
 
+typedef struct Heart
+{
+    float x, y;
+    float w, h;
+    char state;
+
+} Heart;
+
+void drawHeart(Heart* h, int i)
+{
+    Heart* heart = &h[i];
+
+    Vertex* verts = (Vertex*)sceGuGetMemory(9 * sizeof(Vertex));
+
+    verts[0].x = heart->x + heart->w / 2;
+    verts[0].y = heart->y + heart->h;
+
+    verts[1].x = heart->x + heart->w * 0.75;
+    verts[1].y = heart->y + heart->h * 0.65;
+
+    verts[2].x = heart->x + heart->w;
+    verts[2].y = heart->y + heart->h * 0.25;
+
+    verts[3].x = heart->x + heart->w * 0.75;
+    verts[3].y = heart->y;
+
+    verts[4].x = heart->x + heart->w / 2;
+    verts[4].y = heart->y + heart->h * 0.25;
+
+    verts[5].x = heart->x + heart->w * 0.25;
+    verts[5].y = heart->y;
+
+    verts[6].x = heart->x;
+    verts[6].y = heart->y + heart->h * 0.25;
+
+    verts[7].x = heart->x + heart->w * 0.25;
+    verts[7].y = heart->y + heart->h * 0.65;
+
+    verts[8].x = heart->x + heart->w / 2;
+    verts[8].y = heart->y + heart->h;
+
+    sceGuColor(0xFFFFFFFF); // Red, colors are ABGR
+    sceGuDrawArray(GU_LINE_STRIP, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, 9, 0, verts);
+}
+
 int main()
 {
     // Make exiting with the home button possible
@@ -471,6 +516,7 @@ int main()
     Triangle player = { 0 };
     Asteroid rock[MAX_AST] = { 0 };
     Bullet pew[MAX_BULLETS] = { 0 };
+    Heart heart[1] = {200, 130, 40, 40, 1};
 
 
     initAsteroid(rock, MAX_AST);
@@ -579,6 +625,8 @@ int main()
 
             drawTriangle(&player);
 
+            drawHeart(heart, 0);
+
             // periodically spawn asteroids
             // ! make this a better system ts sucks rn
             if (asteroidTimer > 0)
@@ -597,12 +645,7 @@ int main()
 
             endFrame();
 
-            // printf("Analog X = %3d, ", pad.Lx);
-            // printf("Analog Y = %3d \n", pad.Ly);
-
-            // printf("player x = %.4f\n", player.x);
-            // printf("player y = %.4f\n", player.y);
-            printf("health = %hd\n", player.health);
+            // prrIndexf("health = %hd\n", player.health);
             printf("score = %d\n", score);
 
             // for (int x = 0; x < MAX_AST; x++)
