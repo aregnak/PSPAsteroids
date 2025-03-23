@@ -26,6 +26,7 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
 #define printf pspDebugScreenPrintf // don't need stdlib anyway
 
 short int gameState = 1;
+int score = 0;
 
 // loop around the screen if at the edges
 void handleArea(float *x, float *y, short int sHeight, short int sWidth)
@@ -361,9 +362,14 @@ void updateAsteroid(Asteroid* rock, Bullet* pew, short int maxAst, short int max
                     pew[j].x >= rock[i].x - 18 && pew[j].x <= rock[i].x + 18 &&
                     pew[j].y >= rock[i].y - 18 && pew[j].y <= rock[i].y + 18)
                 {
+                    // delete bullet, hit asteroid
+                    // spawn a new asteroid
+                    // add score
+                    // !! make this better ?
                     resetBullet(pew, j);
                     resetAsteroid(rock, i);
                     spawnAsteroid(rock, sHeight, sWidth);
+                    score++;
 
                     break;
                 }
@@ -398,6 +404,8 @@ void initGame(Asteroid* rock, short int sHeight, short int sWidth)
     {
         spawnAsteroid(rock, sHeight, sWidth);
     }
+
+    score = 0;
 }
 
 void initPlayer(Triangle* player)
@@ -544,6 +552,7 @@ int main()
             // printf("player x = %.4f\n", player.x);
             // printf("player y = %.4f\n", player.y);
             printf("health = %hd\n", player.health);
+            printf("score = %d\n", score);
 
             // for (int x = 0; x < MAX_AST; x++)
             // {
