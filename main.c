@@ -22,6 +22,7 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
 
 #define MAX_BULLETS 20
 #define MAX_AST 20
+#define MAX_HP 5
 
 #define printf pspDebugScreenPrintf // don't need stdlib anyway
 
@@ -69,7 +70,7 @@ typedef struct Triangle
     float x, y;
     float w, h;
     float angle;
-    unsigned short int health;
+    short int health;
 
 } Triangle;
 
@@ -446,21 +447,20 @@ void initGame(Asteroid* rock, short int sHeight, short int sWidth)
     score = 0;
 }
 
-void initPlayer(Triangle* player)
+void initPlayer(Triangle* player, short int maxHP)
 {
     player->x = 240;
     player->y = 136;
     player->w = 20;
     player->h = 34;
     player->angle = 0;
-    player->health = 5;
+    player->health = maxHP;
 }
 
 typedef struct Heart
 {
     float x, y;
     float w, h;
-    char state;
 
 } Heart;
 
@@ -501,6 +501,33 @@ void drawHeart(Heart* h, int i)
     sceGuDrawArray(GU_LINE_STRIP, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, 9, 0, verts);
 }
 
+void checkHearts(Triangle* player, Heart* heart)
+{
+    short int hp = player->health;
+
+    for (int i = 0; i < hp; i++)
+    {
+        drawHeart(heart, i);
+    }
+}
+
+void initHearts(Heart* heart, short int maxHP)
+{
+    short int hX = 15;
+    short int hY = 258;
+
+    for (int i = 0; i < maxHP; i++)
+    {
+        heart[i].x = hX;
+        heart[i].y = hY;
+        heart[i].w = 16;
+        heart[i].h = 14;
+
+        // create a 10 pixel space between hearts
+        hX += heart[i].w + 10;
+    }
+}
+
 int main()
 {
     // Make exiting with the home button possible
@@ -516,12 +543,13 @@ int main()
     Triangle player = { 0 };
     Asteroid rock[MAX_AST] = { 0 };
     Bullet pew[MAX_BULLETS] = { 0 };
-    Heart heart[1] = {200, 130, 40, 40, 1};
+    Heart heart[MAX_HP] = { 0 };
 
 
     initAsteroid(rock, MAX_AST);
     initBullet(pew, MAX_BULLETS);
-    initPlayer(&player);
+    initPlayer(&player, MAX_HP);
+    initHearts(heart, MAX_HP);
 
     initGame(rock, SCREEN_HEIGHT, SCREEN_WIDTH);
 
@@ -622,10 +650,10 @@ int main()
 
             updateAsteroid(rock, pew, activeAsteroid, MAX_AST, MAX_BULLETS, SCREEN_HEIGHT, SCREEN_WIDTH);
             playerCollision(&player, rock, activeAsteroid, MAX_AST, SCREEN_HEIGHT, SCREEN_WIDTH);
+            checkHearts(&player, heart);
 
             drawTriangle(&player);
 
-            drawHeart(heart, 0);
 
             // periodically spawn asteroids
             // ! make this a better system ts sucks rn
@@ -645,7 +673,7 @@ int main()
 
             endFrame();
 
-            // prrIndexf("health = %hd\n", player.health);
+            // printf("health = %hd\n", player.health);
             printf("score = %d\n", score);
 
             // for (int x = 0; x < MAX_AST; x++)
@@ -674,7 +702,8 @@ int main()
                     gameState = 1;
                     initAsteroid(rock, MAX_AST);
                     initBullet(pew, MAX_BULLETS);
-                    initPlayer(&player);
+                    initPlayer(&player, MAX_HP);
+                    initHearts(heart, MAX_HP);
                     initGame(rock, SCREEN_HEIGHT, SCREEN_WIDTH);
                 }
             }
