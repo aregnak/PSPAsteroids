@@ -25,6 +25,8 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
 
 #define printf pspDebugScreenPrintf // don't need stdlib anyway
 
+short int gameState = 1;
+
 // loop around the screen if at the edges
 void handleArea(float *x, float *y, short int sHeight, short int sWidth)
 {
@@ -66,7 +68,7 @@ typedef struct Triangle
     float x, y;
     float w, h;
     float angle;
-    // unsigned short int health;
+    unsigned short int health;
 
 } Triangle;
 
@@ -112,6 +114,19 @@ void getTriPeak(Triangle* t, float *peakx, float *peaky)
     float sinA = sinf(t->angle);
     *peakx = t->x + (localx * cosA - localy * sinA);
     *peaky = t->y + (localx * sinA + localy * cosA);
+}
+
+void playerHealthCheck(Triangle* player)
+{
+    if (player->health > 1)
+    {
+       player->health--;
+    }
+    else
+    {
+        gameState = 0;
+        player->health = 0;
+    }
 }
 
 
@@ -369,17 +384,12 @@ void playerCollision(Triangle* tri, Asteroid* rock, short int maxAst, short int 
             tri->y >= rock[i].y - tri->h + 2 && tri->y <= rock[i].y + tri->h - 2)
         {
             resetAsteroid(rock, i);
-            // t->health--;
+            playerHealthCheck(tri);
             spawnAsteroid(rock, sHeight, sWidth);
 
             break;
         }
     }
-}
-
-void playerHealthCheck()
-{
-
 }
 
 void initGame(Asteroid* rock, short int sHeight, short int sWidth)
@@ -388,6 +398,16 @@ void initGame(Asteroid* rock, short int sHeight, short int sWidth)
     {
         spawnAsteroid(rock, sHeight, sWidth);
     }
+}
+
+void initPlayer(Triangle* player)
+{
+    player->x = 240;
+    player->y = 136;
+    player->w = 20;
+    player->h = 34;
+    player->angle = 0;
+    player->health = 5;
 }
 
 int main()
@@ -402,13 +422,14 @@ int main()
     pspDebugScreenInit();
 
     // spawn player at the center of the screen
-    Triangle player = {240.f, 136.f, 20.f, 34.f, 0.f};
+    Triangle player = { 0 };
     Asteroid rock[MAX_AST] = { 0 };
     Bullet pew[MAX_BULLETS] = { 0 };
 
 
     initAsteroid(rock, MAX_AST);
     initBullet(pew, MAX_BULLETS);
+    initPlayer(&player);
 
     initGame(rock, SCREEN_HEIGHT, SCREEN_WIDTH);
 
@@ -425,111 +446,138 @@ int main()
     short int pewTimer = 0;
     short int asteroidTimer = 200;
 
-    while(isRunning())
+    gameState = 1; // just in case, also for clarity
+
+    while (isRunning())
     {
-        startFrame();
-
-        pspDebugScreenSetXY(0, 2);
-        sceCtrlReadBufferPositive(&pad, 1);
-
-        accx -= (pad.Lx  - 128) / 50;
-        accy -= (pad.Ly  - 128) / 50;
-
-        velx = (accx - pad.Lx) / 80; // immitate acceleration and no gravity
-        vely = (accy - pad.Ly) / 80;
-
-        player.x -= velx;
-        player.y -= vely;
-
-        handleSpeed(&accx, &accy);
-
-        handleArea(&player.x, &player.y, SCREEN_HEIGHT, SCREEN_WIDTH);
-
-        updateBullets(pew, MAX_BULLETS, SCREEN_HEIGHT, SCREEN_WIDTH);
-
-        if (pad.Buttons != 0)
+        if (gameState)
         {
-            if (pad.Buttons & PSP_CTRL_LTRIGGER)
-            {
-                player.angle -= 0.06f;
-            }
+            startFrame();
 
-            if (pad.Buttons & PSP_CTRL_RTRIGGER)
-            {
-                player.angle += 0.06f;
-            }
+            pspDebugScreenSetXY(0, 2);
+            sceCtrlReadBufferPositive(&pad, 1);
 
-            //make rotation a little nicer
-            if (player.angle < 0) player.angle += 2 * M_PI;
-            if (player.angle >= 2 * M_PI) player.angle -= 2 * M_PI;
+            accx -= (pad.Lx  - 128) / 50;
+            accy -= (pad.Ly  - 128) / 50;
 
-            if (pad.Buttons & PSP_CTRL_CROSS)
+            velx = (accx - pad.Lx) / 80; // immitate acceleration and no gravity
+            vely = (accy - pad.Ly) / 80;
+
+            player.x -= velx;
+            player.y -= vely;
+
+            handleSpeed(&accx, &accy);
+
+            handleArea(&player.x, &player.y, SCREEN_HEIGHT, SCREEN_WIDTH);
+
+            updateBullets(pew, MAX_BULLETS, SCREEN_HEIGHT, SCREEN_WIDTH);
+
+            if (pad.Buttons != 0)
             {
-                if (!pewTimer)
+                if (pad.Buttons & PSP_CTRL_LTRIGGER)
                 {
-                    for (int i = 0; i < MAX_BULLETS; i++)
-                    {
-                        if (!pew[i].active)
-                        {
-                            float peakx, peaky;
-                            getTriPeak(&player, &peakx, &peaky);
+                    player.angle -= 0.06f;
+                }
 
-                            // Spawn a new bullet
-                            pew[i].x = peakx;
-                            pew[i].y = peaky;
-                            pew[i].angle = player.angle + (90.f * M_PI / 180.f);
-                            pew[i].speed = 8.0f; // Set bullet speed
-                            pew[i].active = 1;   // Mark as active
-                            pewTimer = 15;
-                            break;
+                if (pad.Buttons & PSP_CTRL_RTRIGGER)
+                {
+                    player.angle += 0.06f;
+                }
+
+                //make rotation a little nicer
+                if (player.angle < 0) player.angle += 2 * M_PI;
+                if (player.angle >= 2 * M_PI) player.angle -= 2 * M_PI;
+
+                if (pad.Buttons & PSP_CTRL_CROSS)
+                {
+                    if (!pewTimer)
+                    {
+                        for (int i = 0; i < MAX_BULLETS; i++)
+                        {
+                            if (!pew[i].active)
+                            {
+                                float peakx, peaky;
+                                getTriPeak(&player, &peakx, &peaky);
+
+                                // Spawn a new bullet
+                                pew[i].x = peakx;
+                                pew[i].y = peaky;
+                                pew[i].angle = player.angle + (90.f * M_PI / 180.f);
+                                pew[i].speed = 8.0f; // Set bullet speed
+                                pew[i].active = 1;   // Mark as active
+                                pewTimer = 15;
+                                break;
+                            }
                         }
                     }
                 }
             }
-        }
 
-        if (pewTimer > 0)
-        {
-            pewTimer--;
-        }
+            if (pewTimer > 0)
+            {
+                pewTimer--;
+            }
 
-        // periodically spawn asteroids
-        // ! make this a better system ts sucks rn
-        if (asteroidTimer > 0)
-        {
-            asteroidTimer--;
+            // periodically spawn asteroids
+            // ! make this a better system ts sucks rn
+            if (asteroidTimer > 0)
+            {
+                asteroidTimer--;
+            }
+            else
+            {
+                spawnAsteroid(rock, SCREEN_HEIGHT, SCREEN_WIDTH);
+                asteroidTimer = 500;
+            }
+
+            updateAsteroid(rock, pew, MAX_AST, MAX_BULLETS, SCREEN_HEIGHT, SCREEN_WIDTH);
+            playerCollision(&player, rock, MAX_AST, SCREEN_HEIGHT, SCREEN_WIDTH);
+
+            drawTriangle(&player);
+
+            endFrame();
+
+
+            // printf("Analog X = %3d, ", pad.Lx);
+            // printf("Analog Y = %3d \n", pad.Ly);
+
+            // printf("player x = %.4f\n", player.x);
+            // printf("player y = %.4f\n", player.y);
+            printf("health = %hd\n", player.health);
+
+            // for (int x = 0; x < MAX_AST; x++)
+            // {
+            //     if (rock[x].active)
+            //     {
+            //         printf("rock %d pos x = %.4f y = %.4f\n", x, rock[x].x, rock[x].y);
+            //     }
+            // }
+
+            // size_t freeMem = sceKernelTotalFreeMemSize();
+            // printf("Free memory: %zu\n", freeMem);
         }
         else
         {
-            spawnAsteroid(rock, SCREEN_HEIGHT, SCREEN_WIDTH);
-            asteroidTimer = 500;
-        }
+            startFrame();
 
-        updateAsteroid(rock, pew, MAX_AST, MAX_BULLETS, SCREEN_HEIGHT, SCREEN_WIDTH);
-        playerCollision(&player, rock, MAX_AST, SCREEN_HEIGHT, SCREEN_WIDTH);
+            pspDebugScreenSetXY(0, 2);
+            sceCtrlReadBufferPositive(&pad, 1);
 
-        drawTriangle(&player);
-
-        endFrame();
-
-
-        printf("Analog X = %3d, ", pad.Lx);
-        printf("Analog Y = %3d \n", pad.Ly);
-
-        printf("player x = %.4f\n", player.x);
-        printf("player y = %.4f\n", player.y);
-        // printf("health = %hd\n", player.health);
-
-        for (int x = 0; x < MAX_AST; x++)
-        {
-            if (rock[x].active)
+            printf("Game Over! press circle to restart\n");
+            if (pad.Buttons != 0)
             {
-                printf("rock %d pos x = %.4f y = %.4f\n", x, rock[x].x, rock[x].y);
+                if (pad.Buttons & PSP_CTRL_CIRCLE)
+                {
+                    gameState = 1;
+                    initAsteroid(rock, MAX_AST);
+                    initBullet(pew, MAX_BULLETS);
+                    initPlayer(&player);
+                    initGame(rock, SCREEN_HEIGHT, SCREEN_WIDTH);
+                }
             }
-        }
 
-        size_t freeMem = sceKernelTotalFreeMemSize();
-        printf("Free memory: %zu\n", freeMem);
+            endFrame();
+        }
     }
 
     return 0;
