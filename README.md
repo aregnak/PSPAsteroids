@@ -1,5 +1,21 @@
-Asteroids game in C for the PSP.
+# ASTEROIDS
 
-very nice very fun.
+### Dependencies:
+pspdev
 
-not complete yet.
+### How To Compile:
+#### OPTIONAL:
+Using docker:
+```bash
+sudo docker run -ti -v .:/source pspdev/pspdev:latest
+```
+#### CMAKE:
+```bash
+mkdir build
+cd build
+psp-cmake ..
+make
+```
+
+Enjoy!
+
