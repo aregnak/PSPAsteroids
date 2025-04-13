@@ -13,6 +13,7 @@ set(SOURCES
 	${CMAKE_SOURCE_DIR}/common/callback.c
 	${CMAKE_SOURCE_DIR}/graphics/gu.c
 	${CMAKE_SOURCE_DIR}/src/heart.c
+	${CMAKE_SOURCE_DIR}/src/triangle.c
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

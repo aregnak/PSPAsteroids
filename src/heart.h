@@ -1,9 +1,8 @@
 #ifndef HEART_H
 #define HEART_H
 
-#include <pspgu.h>
-
 #include "vertex.h"
+#include "triangle.h"
 
 typedef struct Vertex Vertex;
 
@@ -15,7 +14,7 @@ typedef struct Heart
 } Heart;
 
 void drawHeart(Heart* h, int i);
-void checkHearts(void* Player, Heart* heart);
+void checkHearts(Triangle* player, Heart* heart);
 void initHearts(Heart* heart, short int maxHP);
 
 #endif // HEART.H

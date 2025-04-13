@@ -38,9 +38,9 @@ void drawHeart(Heart* h, int i)
     sceGuDrawArray(GU_LINE_STRIP, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, 9, 0, verts);
 }
 
-void checkHearts(void* player, Heart* heart)
+void checkHearts(Triangle* player, Heart* heart)
 {
-    short int hp = ((struct Triangle*)player)->health;
+    short int hp = player->health;
 
     for (int i = 0; i < hp; i++)
     {
