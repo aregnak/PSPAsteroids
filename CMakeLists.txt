@@ -2,18 +2,27 @@ cmake_minimum_required(VERSION 3.31)
 
 project(Asteroids)
 
+set(COMMON_DIR ${CMAKE_SOURCE_DIR}/common)
+set(GRAPHICS_DIR ${CMAKE_SOURCE_DIR}/graphics)
+set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
+set(ENTITIES_DIR ${CMAKE_SOURCE_DIR}/src/entities)
+#set(GAME_DIR ${CMAKE_SOURCE_DIR}/src/game)
+
 include_directories(
-	${CMAKE_SOURCE_DIR}/common
-	${CMAKE_SOURCE_DIR}/graphics
-	${CMAKE_SOURCE_DIR}/src
+    ${COMMON_DIR}
+    ${GRAPHICS_DIR}
+    ${ENTITIES_DIR}
+    #${GAME_DIR}
 )
 
 set(SOURCES
-	main.c
-	${CMAKE_SOURCE_DIR}/common/callback.c
-	${CMAKE_SOURCE_DIR}/graphics/gu.c
-	${CMAKE_SOURCE_DIR}/src/heart.c
-	${CMAKE_SOURCE_DIR}/src/triangle.c
+    ${SRC_DIR}/main.c
+    ${COMMON_DIR}/callback.c
+    ${GRAPHICS_DIR}/gu.c
+    #${GAME_DIR}/game.c
+    ${ENTITIES_DIR}/heart.c
+    ${ENTITIES_DIR}/triangle.c
+
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

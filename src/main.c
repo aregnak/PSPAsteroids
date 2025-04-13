@@ -10,9 +10,9 @@
 #include <pspctrl.h>
 #include <pspdebug.h>
 
-#include "callback.h"
-#include "gu.h"
-#include "config.h"
+#include "../common/callback.h"
+#include "../common/config.h"
+#include "../graphics/gu.h"
 
 #include "vertex.h"
 #include "heart.h"
