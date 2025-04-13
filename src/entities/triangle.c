@@ -3,6 +3,16 @@
 #include "triangle.h"
 #include "game.h"
 
+void initPlayer(Triangle* player, short int maxHP)
+{
+    player->x = 240;
+    player->y = 136;
+    player->w = 20;
+    player->h = 34;
+    player->angle = 0;
+    player->health = maxHP;
+}
+
 void drawTriangle(Triangle* t)
 {
     // allocate enough memory for 4 verticles

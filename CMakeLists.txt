@@ -22,7 +22,8 @@ set(SOURCES
     ${GAME_DIR}/game.c
     ${ENTITIES_DIR}/heart.c
     ${ENTITIES_DIR}/triangle.c
-
+    ${ENTITIES_DIR}/bullet.c
+    ${ENTITIES_DIR}/asteroid.c
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

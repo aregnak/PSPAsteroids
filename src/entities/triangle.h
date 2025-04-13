@@ -20,6 +20,7 @@ typedef struct Triangle
 void drawTriangle(Triangle* t);
 void getTriPeak(Triangle* t, float *peakx, float *peaky);
 void playerHealthCheck(Triangle* player);
+void initPlayer(Triangle* player, short int maxHP);
 
 
 #endif // TRI_H
