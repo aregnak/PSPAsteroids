@@ -5,12 +5,14 @@ project(Asteroids)
 include_directories(
 	${CMAKE_SOURCE_DIR}/common
 	${CMAKE_SOURCE_DIR}/graphics
+	${CMAKE_SOURCE_DIR}/src
 )
 
 set(SOURCES
 	main.c
 	${CMAKE_SOURCE_DIR}/common/callback.c
 	${CMAKE_SOURCE_DIR}/graphics/gu.c
+	${CMAKE_SOURCE_DIR}/src/heart.c
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

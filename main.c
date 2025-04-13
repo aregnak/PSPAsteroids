@@ -9,13 +9,14 @@
 #include <pspdisplay.h>
 #include <pspctrl.h>
 #include <pspdebug.h>
-// #include <psptypes.h>
 
 #include "callback.h"
-#include "common/callback.h"
-#include "common/config.h"
 #include "gu.h"
 #include "config.h"
+
+#include "vertex.h"
+#include "heart.h"
+
 
 PSP_MODULE_INFO("shape", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
@@ -59,11 +60,11 @@ void handleSpeed(float *accx, float *accy)
     if (*accy < maxAcc - 128) *accy = maxAcc - 128;
 }
 
-typedef struct Vertex
-{
-    unsigned short u, v;
-    short x, y, z;
-} Vertex;
+// typedef struct Vertex
+// {
+//     unsigned short u, v;
+//     short x, y, z;
+// } Vertex;
 
 typedef struct Triangle
 {
@@ -457,76 +458,76 @@ void initPlayer(Triangle* player, short int maxHP)
     player->health = maxHP;
 }
 
-typedef struct Heart
-{
-    float x, y;
-    float w, h;
+// typedef struct Heart
+// {
+//     float x, y;
+//     float w, h;
 
-} Heart;
+// } Heart;
 
-void drawHeart(Heart* h, int i)
-{
-    Heart* heart = &h[i];
+// void drawHeart(Heart* h, int i)
+// {
+//     Heart* heart = &h[i];
 
-    Vertex* verts = (Vertex*)sceGuGetMemory(9 * sizeof(Vertex));
+//     Vertex* verts = (Vertex*)sceGuGetMemory(9 * sizeof(Vertex));
 
-    verts[0].x = heart->x + heart->w / 2;
-    verts[0].y = heart->y + heart->h;
+//     verts[0].x = heart->x + heart->w / 2;
+//     verts[0].y = heart->y + heart->h;
 
-    verts[1].x = heart->x + heart->w * 0.75;
-    verts[1].y = heart->y + heart->h * 0.65;
+//     verts[1].x = heart->x + heart->w * 0.75;
+//     verts[1].y = heart->y + heart->h * 0.65;
 
-    verts[2].x = heart->x + heart->w;
-    verts[2].y = heart->y + heart->h * 0.25;
+//     verts[2].x = heart->x + heart->w;
+//     verts[2].y = heart->y + heart->h * 0.25;
 
-    verts[3].x = heart->x + heart->w * 0.75;
-    verts[3].y = heart->y;
+//     verts[3].x = heart->x + heart->w * 0.75;
+//     verts[3].y = heart->y;
 
-    verts[4].x = heart->x + heart->w / 2;
-    verts[4].y = heart->y + heart->h * 0.25;
+//     verts[4].x = heart->x + heart->w / 2;
+//     verts[4].y = heart->y + heart->h * 0.25;
 
-    verts[5].x = heart->x + heart->w * 0.25;
-    verts[5].y = heart->y;
+//     verts[5].x = heart->x + heart->w * 0.25;
+//     verts[5].y = heart->y;
 
-    verts[6].x = heart->x;
-    verts[6].y = heart->y + heart->h * 0.25;
+//     verts[6].x = heart->x;
+//     verts[6].y = heart->y + heart->h * 0.25;
 
-    verts[7].x = heart->x + heart->w * 0.25;
-    verts[7].y = heart->y + heart->h * 0.65;
+//     verts[7].x = heart->x + heart->w * 0.25;
+//     verts[7].y = heart->y + heart->h * 0.65;
 
-    verts[8].x = heart->x + heart->w / 2;
-    verts[8].y = heart->y + heart->h;
+//     verts[8].x = heart->x + heart->w / 2;
+//     verts[8].y = heart->y + heart->h;
 
-    sceGuColor(0xFFFFFFFF); // Red, colors are ABGR
-    sceGuDrawArray(GU_LINE_STRIP, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, 9, 0, verts);
-}
+//     sceGuColor(0xFFFFFFFF); // Red, colors are ABGR
+//     sceGuDrawArray(GU_LINE_STRIP, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, 9, 0, verts);
+// }
 
-void checkHearts(Triangle* player, Heart* heart)
-{
-    short int hp = player->health;
+// void checkHearts(Triangle* player, Heart* heart)
+// {
+//     short int hp = player->health;
 
-    for (int i = 0; i < hp; i++)
-    {
-        drawHeart(heart, i);
-    }
-}
+//     for (int i = 0; i < hp; i++)
+//     {
+//         drawHeart(heart, i);
+//     }
+// }
 
-void initHearts(Heart* heart, short int maxHP)
-{
-    short int hX = 15;
-    short int hY = 258;
+// void initHearts(Heart* heart, short int maxHP)
+// {
+//     short int hX = 15;
+//     short int hY = 244;
 
-    for (int i = 0; i < maxHP; i++)
-    {
-        heart[i].x = hX;
-        heart[i].y = hY;
-        heart[i].w = 16;
-        heart[i].h = 14;
+//     for (int i = 0; i < maxHP; i++)
+//     {
+//         heart[i].x = hX;
+//         heart[i].y = hY;
+//         heart[i].w = 16;
+//         heart[i].h = 14;
 
-        // create a 10 pixel space between hearts
-        hX += heart[i].w + 10;
-    }
-}
+//         // create a 10 pixel space between hearts
+//         hX += heart[i].w + 10;
+//     }
+// }
 
 int main()
 {
