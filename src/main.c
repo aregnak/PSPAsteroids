@@ -28,7 +28,7 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
 #define printf pspDebugScreenPrintf // don't need stdlib anyway
 
 int score = 0;
-
+GameState gameState = GAME_RUNNING;
 
 int main()
 {
@@ -40,8 +40,6 @@ int main()
     sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
 
     pspDebugScreenInit();
-
-    GameState gameState = GAME_RUNNING;
 
     // spawn player at the center of the screen
     Triangle player = { 0 };
@@ -70,8 +68,6 @@ int main()
     short int pewTimer = 0;
     short int asteroidTimer = 200;
     short int activeAsteroid = 0;
-
-    gameState = 1; // just in case, also for clarity
 
     while (isRunning())
     {
@@ -203,7 +199,7 @@ int main()
             {
                 if (pad.Buttons & PSP_CTRL_CIRCLE)
                 {
-                    gameState = 1;
+                    gameState = GAME_RUNNING;
                     initAsteroid(rock, MAX_AST);
                     initBullet(pew, MAX_BULLETS);
                     initPlayer(&player, MAX_HP);

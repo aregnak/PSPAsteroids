@@ -1,7 +1,5 @@
 #include "game.h"
 
-GameState gameState = GAME_RUNNING;
-
 // Loop around the screen if at the edges
 void handleArea(float *x, float *y, short int sHeight, short int sWidth)
 {

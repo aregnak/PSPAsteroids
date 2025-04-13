@@ -65,7 +65,7 @@ void playerHealthCheck(Triangle* player)
     }
     else
     {
-        gameState = 0;
+        gameState = GAME_OVER;
         player->health = 0;
     }
 }

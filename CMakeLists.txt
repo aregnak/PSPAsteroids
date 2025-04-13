@@ -8,6 +8,8 @@ set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(ENTITIES_DIR ${CMAKE_SOURCE_DIR}/src/entities)
 set(GAME_DIR ${CMAKE_SOURCE_DIR}/src/game)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 include_directories(
     ${COMMON_DIR}
     ${GRAPHICS_DIR}
