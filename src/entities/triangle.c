@@ -1,6 +1,7 @@
 #include <pspgu.h>
 #include <math.h>
 #include "triangle.h"
+#include "game.h"
 
 void drawTriangle(Triangle* t)
 {

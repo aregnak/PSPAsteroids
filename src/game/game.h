@@ -2,7 +2,7 @@
 #define GAME_H
 
 typedef enum {
-    GAME_RUNNING
+    GAME_RUNNING,
     GAME_OVER
 } GameState;
 
