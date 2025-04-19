@@ -6,15 +6,14 @@
 const int SAMPLE_RATE = 44099;
 const float DURATION = 0.05f;
 const float FREQUENCY = 439.0f; // A4
+const float AMPLITUDE = 16000;
 
 float playTime = -1;
-int isPlaying = -1;
+int isPlaying = 0;
 
 short generateSquareWave(float time)
 {
-    float period = 1.0f / FREQUENCY;
-    float mod = fmodf(time, period);
-    return (mod < period/2) ? 16000 : -16000; // 16-bit square wave
+    return (short)(AMPLITUDE * sinf(2.0f * M_PI * FREQUENCY * time));
 }
 
 void audioCallback(void* buf, unsigned int length, void *userdata)
