@@ -7,6 +7,7 @@ set(GRAPHICS_DIR ${CMAKE_SOURCE_DIR}/graphics)
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(ENTITIES_DIR ${CMAKE_SOURCE_DIR}/src/entities)
 set(GAME_DIR ${CMAKE_SOURCE_DIR}/src/game)
+set(AUDIO_DIR ${CMAKE_SOURCE_DIR}/src/audio)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -15,6 +16,7 @@ include_directories(
     ${GRAPHICS_DIR}
     ${ENTITIES_DIR}
     ${GAME_DIR}
+    ${AUDIO_DIR}
 )
 
 set(SOURCES
@@ -26,6 +28,7 @@ set(SOURCES
     ${ENTITIES_DIR}/triangle.c
     ${ENTITIES_DIR}/bullet.c
     ${ENTITIES_DIR}/asteroid.c
+    ${AUDIO_DIR}/sound.c
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -41,6 +44,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     pspdisplay
     pspdebug
     pspctrl
+    pspaudio
+    pspaudiolib
+    psputility
 )
 
 # Create an EBOOT.PBP file

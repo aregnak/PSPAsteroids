@@ -3,12 +3,15 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <limits.h>
 
 #include <pspkernel.h>
 #include <pspgu.h>
 #include <pspdisplay.h>
 #include <pspctrl.h>
 #include <pspdebug.h>
+#include <pspaudio.h>
+#include <pspaudiolib.h>
 
 #include "../common/callback.h"
 #include "../common/config.h"
@@ -16,11 +19,12 @@
 
 // even if the directories are in cmake,
 // it is much clearer to have them listed in here
-#include "game/game.h"
+#include "audio/sound.h"
 #include "entities/asteroid.h"
 #include "entities/bullet.h"
 #include "entities/heart.h"
 #include "entities/triangle.h"
+#include "game/game.h"
 
 PSP_MODULE_INFO("shape", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
@@ -40,6 +44,10 @@ int main()
     sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
 
     pspDebugScreenInit();
+
+    pspAudioInit();
+    pspAudioSetChannelCallback(0, audioCallback, NULL);
+
 
     // spawn player at the center of the screen
     Triangle player = { 0 };
@@ -113,6 +121,9 @@ int main()
                 {
                     if (!pewTimer)
                     {
+                        isPlaying = 1;
+                        playTime = 0;   // audio testing
+
                         for (int i = 0; i < MAX_BULLETS; i++)
                         {
                             if (!pew[i].active)
