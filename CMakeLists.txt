@@ -30,6 +30,11 @@ set(SOURCES
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    COMPILE_FLAGS "-G0 -Wall"
+    LINK_FLAGS "-G0 -Wall"
+)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
     pspgu
     pspge
@@ -41,8 +46,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 # Create an EBOOT.PBP file
 create_pbp_file(
     TARGET ${PROJECT_NAME}
-    ICON_PATH NULL
-    BACKGROUND_PATH NULL
+    ICON_PATH "${CMAKE_SOURCE_DIR}/assets/icon0.png"
+    BACKGROUND_PATH "${CMAKE_SOURCE_DIR}/assets/pic0.png"
     PREVIEW_PATH NULL
     TITLE ${PROJECT_NAME}
     VERSION 01.00

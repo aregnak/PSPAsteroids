@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include "asteroid.h"
-#include "game.h"
+#include "../game/game.h"
 
 
 void initGame(Asteroid* rock, short int sHeight, short int sWidth)

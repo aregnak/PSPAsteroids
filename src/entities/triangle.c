@@ -1,7 +1,7 @@
 #include <pspgu.h>
 #include <math.h>
 #include "triangle.h"
-#include "game.h"
+#include "../game/game.h"
 
 void initPlayer(Triangle* player, short int maxHP)
 {
@@ -15,7 +15,7 @@ void initPlayer(Triangle* player, short int maxHP)
 
 void drawTriangle(Triangle* t)
 {
-    // allocate enough memory for 4 verticles
+    // allocate enough memory for 4 vertices
     Vertex* verts = (Vertex*)sceGuGetMemory(4 * sizeof(Vertex));
 
     // Calculate the half-width and half-height for centering
