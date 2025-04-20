@@ -3,6 +3,8 @@
 
 void drawHeart(Heart* h, int i)
 {
+    sceGuDisable(GU_BLEND);
+
     Heart* heart = &h[i];
 
     Vertex* verts = (Vertex*)sceGuGetMemory(9 * sizeof(Vertex));
@@ -34,8 +36,8 @@ void drawHeart(Heart* h, int i)
     verts[8].x = heart->x + heart->w / 2;
     verts[8].y = heart->y + heart->h;
 
-    sceGuColor(0xFFFFFFFF); // Red, colors are ABGR
-    sceGuDrawArray(GU_LINE_STRIP, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, 9, 0, verts);
+    sceGuColor(0xFFFFFFFF); // colors are ABGR
+    sceGuDrawArray(GU_TRIANGLE_FAN, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, 9, 0, verts);
 }
 
 void checkHearts(Triangle* player, Heart* heart)

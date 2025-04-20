@@ -8,6 +8,7 @@ set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(ENTITIES_DIR ${CMAKE_SOURCE_DIR}/src/entities)
 set(GAME_DIR ${CMAKE_SOURCE_DIR}/src/game)
 set(AUDIO_DIR ${CMAKE_SOURCE_DIR}/src/audio)
+set(TEXT_DIR ${CMAKE_SOURCE_DIR}/src/text)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -17,6 +18,7 @@ include_directories(
     ${ENTITIES_DIR}
     ${GAME_DIR}
     ${AUDIO_DIR}
+    ${TEXT_DIR}
 )
 
 set(SOURCES
@@ -29,6 +31,8 @@ set(SOURCES
     ${ENTITIES_DIR}/bullet.c
     ${ENTITIES_DIR}/asteroid.c
     ${AUDIO_DIR}/sound.c
+    ${TEXT_DIR}/text.c
+
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -40,6 +44,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     pspgu
+    pspgum
     pspge
     pspdisplay
     pspdebug

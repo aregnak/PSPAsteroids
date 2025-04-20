@@ -25,8 +25,10 @@
 #include "entities/heart.h"
 #include "entities/triangle.h"
 #include "game/game.h"
+#include "text/font.h" // from the font example in pspdev/samples
+#include "text/text.h"
 
-PSP_MODULE_INFO("shape", 0, 1, 0);
+PSP_MODULE_INFO("Asteroids", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
 
 #define printf pspDebugScreenPrintf // don't need stdlib anyway
@@ -45,8 +47,8 @@ int main()
 
     pspDebugScreenInit();
 
-    pspAudioInit();
-    pspAudioSetChannelCallback(0, audioCallback, NULL);
+    // pspAudioInit();
+    // pspAudioSetChannelCallback(0, audioCallback, NULL);
 
 
     // spawn player at the center of the screen
@@ -99,8 +101,6 @@ int main()
 
             handleArea(&player.x, &player.y, SCREEN_HEIGHT, SCREEN_WIDTH);
 
-            updateBullets(pew, MAX_BULLETS, SCREEN_HEIGHT, SCREEN_WIDTH);
-
             if (pad.Buttons != 0)
             {
                 if (pad.Buttons & PSP_CTRL_LTRIGGER)
@@ -121,9 +121,6 @@ int main()
                 {
                     if (!pewTimer)
                     {
-                        isPlaying = 1;
-                        playTime = 0;   // audio testing
-
                         for (int i = 0; i < MAX_BULLETS; i++)
                         {
                             if (!pew[i].active)
@@ -159,6 +156,8 @@ int main()
                 }
             }
 
+            disableBlend();
+            updateBullets(pew, MAX_BULLETS, SCREEN_HEIGHT, SCREEN_WIDTH);
             updateAsteroid(rock, pew, activeAsteroid, MAX_AST, MAX_BULLETS, SCREEN_HEIGHT, SCREEN_WIDTH);
             playerCollision(&player, rock, activeAsteroid, MAX_AST, SCREEN_HEIGHT, SCREEN_WIDTH);
             checkHearts(&player, heart);
@@ -181,6 +180,10 @@ int main()
                     asteroidTimer = 500;
                 }
             }
+
+            // text rendering needs to be before endframe()
+            enableBlend();
+            drawString("testing testing", 0, 30, 0xFFFFFFFF, 0);
 
             endFrame();
 

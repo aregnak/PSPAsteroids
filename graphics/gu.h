@@ -4,6 +4,8 @@
 extern char list[0x1ffff];
 
 void initGu();
+void disableBlend();
+void enableBlend();
 void endGu();
 void startFrame();
 void endFrame();
