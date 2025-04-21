@@ -225,8 +225,16 @@ int main()
             pspDebugScreenSetXY(0, 2);
             sceCtrlReadBufferPositive(&pad, 1);
 
+            // TODO: a better way of centering to not pass the same string twice
             drawString("Game Over!", centerText("Game Over!"), 120, WHITE, 0);
-            drawString("Press O to restart.", 220, 130, WHITE, 0);
+            drawString("Press O to restart.", centerText("Press O to restart."), 130, WHITE, 0);
+
+            // Printing final score after death
+            char buffer[32];
+            strcpy(buffer, "Your score was only ");
+            appendIntToBuffer(buffer, sizeof(buffer), score);
+            drawString(buffer, centerText(buffer), 140, WHITE, 0);
+
             if (pad.Buttons != 0)
             {
                 if (pad.Buttons & PSP_CTRL_CIRCLE)

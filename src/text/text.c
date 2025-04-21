@@ -99,11 +99,13 @@ void drawString(const char* text, int x, int y, unsigned int color, int fw)
         len * 2, 0, v);
 }
 
+/*
+*   This function centers a given text on the screen, based on the current font which is 8x8 pixels,
+*   by multiplying the length of the string by the width of each character, dividing by two, then
+*   subtracting that number from half the width of the screen, we get a nice centered text
+*/
 int centerText(const char* text)
 {
-    int tlen = strlen(text);
-    int pixelw = tlen*16; // each character is 16x16 px
-    int centeredx = 240 - (pixelw / 2); // 240 is the x center of screen
-
+    int centeredx = 240 - ((strlen(text) * 8) / 2);
     return centeredx;
 }
