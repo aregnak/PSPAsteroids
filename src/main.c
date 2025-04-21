@@ -225,7 +225,7 @@ int main()
             pspDebugScreenSetXY(0, 2);
             sceCtrlReadBufferPositive(&pad, 1);
 
-            drawString("Game Over!", 230, 120, WHITE, 0);
+            drawString("Game Over!", centerText("Game Over!"), 120, WHITE, 0);
             drawString("Press O to restart.", 220, 130, WHITE, 0);
             if (pad.Buttons != 0)
             {

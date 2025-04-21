@@ -98,3 +98,12 @@ void drawString(const char* text, int x, int y, unsigned int color, int fw)
     sceGumDrawArray(GU_SPRITES, GU_TEXTURE_32BITF | GU_COLOR_8888 | GU_VERTEX_32BITF | GU_TRANSFORM_2D,
         len * 2, 0, v);
 }
+
+int centerText(const char* text)
+{
+    int tlen = strlen(text);
+    int pixelw = tlen*16; // each character is 16x16 px
+    int centeredx = 240 - (pixelw / 2); // 240 is the x center of screen
+
+    return centeredx;
+}

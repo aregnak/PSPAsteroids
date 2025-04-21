@@ -38,8 +38,8 @@ set(SOURCES
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
-    COMPILE_FLAGS "-G0 -Wall"
-    LINK_FLAGS "-G0 -Wall"
+    COMPILE_FLAGS "-G3 -Wall"
+    LINK_FLAGS "-G3 -Wall"
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
