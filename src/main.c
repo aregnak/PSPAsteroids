@@ -1,6 +1,7 @@
+#include <stdlib.h>
+#include <stdio.h>
 #include <complex.h>
 #include <math.h>
-#include <stdlib.h>
 #include <time.h>
 #include <string.h>
 #include <limits.h>
@@ -32,9 +33,17 @@ PSP_MODULE_INFO("Asteroids", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
 
 #define printf pspDebugScreenPrintf // don't need stdlib anyway
+#define WHITE 0xFFFFFFFF // For easy
 
 int score = 0;
 GameState gameState = GAME_RUNNING;
+
+void appendIntToBuffer(char* buffer, size_t bufferSize, int num) {
+    size_t len = strlen(buffer);
+    if (len < bufferSize - 1) { // leave room for null terminator
+        snprintf(buffer + len, bufferSize - len, "%d", num);
+    }
+}
 
 int main()
 {
@@ -183,12 +192,20 @@ int main()
 
             // text rendering needs to be before endframe()
             enableBlend();
-            drawString("testing testing", 0, 30, 0xFFFFFFFF, 0);
+
+            char buffer[32];
+            strcpy(buffer, "Score: ");
+            appendIntToBuffer(buffer, sizeof(buffer), score);
+
+            drawString(buffer, 10, 10, 0xFFFFFFFF, 0);
 
             endFrame();
 
+            // ----------------------------
+            // Old debug printf statements
+            // ----------------------------
             // printf("health = %hd\n", player.health);
-            printf("score = %d\n", score);
+            //printf("score = %d\n", score);
 
             // for (int x = 0; x < MAX_AST; x++)
             // {
@@ -208,7 +225,8 @@ int main()
             pspDebugScreenSetXY(0, 2);
             sceCtrlReadBufferPositive(&pad, 1);
 
-            printf("Game Over! press circle to restart\n");
+            drawString("Game Over!", 230, 120, WHITE, 0);
+            drawString("Press O to restart.", 220, 130, WHITE, 0);
             if (pad.Buttons != 0)
             {
                 if (pad.Buttons & PSP_CTRL_CIRCLE)
