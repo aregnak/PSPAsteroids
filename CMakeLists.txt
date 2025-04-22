@@ -37,11 +37,12 @@ set(SOURCES
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
+add_compile_options(-Wall -O2)
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    COMPILE_FLAGS "-G3 -Wall"
-    LINK_FLAGS "-G3 -Wall"
-)
+#set_target_properties(${PROJECT_NAME} PROPERTIES
+#    COMPILE_FLAGS "-Wall -O0"
+#    LINK_FLAGS ""
+#)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     pspgu
