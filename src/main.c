@@ -16,6 +16,7 @@
 
 #include "../common/callback.h"
 #include "../common/config.h"
+#include "../common/extra.h"
 #include "../graphics/gu.h"
 
 // even if the directories are in cmake,
@@ -26,7 +27,6 @@
 #include "entities/heart.h"
 #include "entities/triangle.h"
 #include "game/game.h"
-#include "text/font.h" // from the font example in pspdev/samples
 #include "text/text.h"
 
 PSP_MODULE_INFO("Asteroids", 0, 1, 0);
@@ -37,13 +37,6 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
 
 int score = 0;
 GameState gameState = GAME_RUNNING;
-
-void appendIntToBuffer(char* buffer, size_t bufferSize, int num) {
-    size_t len = strlen(buffer);
-    if (len < bufferSize - 1) { // leave room for null terminator
-        snprintf(buffer + len, bufferSize - len, "%d", num);
-    }
-}
 
 int main()
 {

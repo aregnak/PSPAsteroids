@@ -24,6 +24,7 @@ include_directories(
 set(SOURCES
     ${SRC_DIR}/main.c
     ${COMMON_DIR}/callback.c
+    ${COMMON_DIR}/extra.c
     ${GRAPHICS_DIR}/gu.c
     ${GAME_DIR}/game.c
     ${ENTITIES_DIR}/heart.c

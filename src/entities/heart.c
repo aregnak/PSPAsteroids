@@ -3,8 +3,6 @@
 
 void drawHeart(Heart* h, int i)
 {
-    sceGuDisable(GU_BLEND);
-
     Heart* heart = &h[i];
 
     Vertex* verts = (Vertex*)sceGuGetMemory(9 * sizeof(Vertex));
