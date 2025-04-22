@@ -8,11 +8,14 @@ Started as a project to learn more about C and SDKs, and to show love for a reli
 pspdev
 
 ### How To Compile:
+#### Skip to CMAKE step if on Ubuntu, Debian, Fedora or Arch
 #### OPTIONAL:
 Enter docker:
 ```bash
 sudo docker run -ti -v .:/source pspdev/pspdev:latest
+cd /source
 ```
+
 #### CMAKE:
 ```bash
 mkdir build
