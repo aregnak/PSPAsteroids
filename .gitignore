@@ -1,6 +1,9 @@
 # build dir 
 build/
 
+# clangd cache
+.cache/
+
 # compiled files
 *.o
 
