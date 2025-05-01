@@ -24,5 +24,10 @@ psp-cmake ..
 make
 ```
 
+#### Using upload.sh file
+The upload.sh file builds and uploads the EBOOT.PBP file to your PSP automatically.
+
+MAKE SURE TO CHANGE THE `PSP_PATH` VARIABLE TO YOUR PSP MOUNT POINT!
+
 Enjoy!
 
