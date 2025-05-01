@@ -159,6 +159,8 @@ int main()
             drawString(buffer, 10, 10, 0xFFFFFFFF, 0);
 
             endFrame();
+            
+   
 
             // ----------------------------
             // Old debug printf statements

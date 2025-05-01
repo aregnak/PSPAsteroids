@@ -20,7 +20,7 @@ void handlePlayerInput(Triangle* player, Bullet* pew, short int* pewTimer, unsig
 
     if (button & PSP_CTRL_CROSS)
     {
-        if (!pewTimer)
+        if (*pewTimer == 0)
         {
             shootBullet(player, pew);
             *pewTimer = 15;
