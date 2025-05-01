@@ -9,6 +9,7 @@ set(ENTITIES_DIR ${CMAKE_SOURCE_DIR}/src/entities)
 set(GAME_DIR ${CMAKE_SOURCE_DIR}/src/game)
 set(AUDIO_DIR ${CMAKE_SOURCE_DIR}/src/audio)
 set(TEXT_DIR ${CMAKE_SOURCE_DIR}/src/text)
+set(INPUT_DIR ${CMAKE_SOURCE_DIR}/src/input)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -19,6 +20,7 @@ include_directories(
     ${GAME_DIR}
     ${AUDIO_DIR}
     ${TEXT_DIR}
+    ${INPUT_DIR}
 )
 
 set(SOURCES
@@ -33,7 +35,7 @@ set(SOURCES
     ${ENTITIES_DIR}/asteroid.c
     ${AUDIO_DIR}/sound.c
     ${TEXT_DIR}/text.c
-
+    ${INPUT_DIR}/input.c
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

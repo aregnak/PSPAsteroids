@@ -1,3 +1,4 @@
+// C lib includes
 #include <stdlib.h>
 #include <stdio.h>
 #include <complex.h>
@@ -6,6 +7,7 @@
 #include <string.h>
 #include <limits.h>
 
+// PSPSDK includes
 #include <pspkernel.h>
 #include <pspgu.h>
 #include <pspdisplay.h>
@@ -19,14 +21,13 @@
 #include "../common/extra.h"
 #include "../graphics/gu.h"
 
-// even if the directories are in cmake,
-// it is much clearer to have them listed in here
-#include "audio/sound.h"
+// #include "audio/sound.h"
 #include "entities/asteroid.h"
 #include "entities/bullet.h"
 #include "entities/heart.h"
 #include "entities/triangle.h"
 #include "game/game.h"
+#include "input/input.h"
 #include "text/text.h"
 
 PSP_MODULE_INFO("Asteroids", 0, 1, 0);
@@ -36,7 +37,7 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
 #define WHITE 0xFFFFFFFF // For easy
 
 int score = 0;
-GameState gameState = GAME_RUNNING;
+GameState gameState = MAIN_MENU;
 
 int main()
 {
@@ -211,7 +212,8 @@ int main()
             // size_t freeMem = sceKernelTotalFreeMemSize();
             // printf("Free memory: %zu\n", freeMem);
         }
-        else
+
+        else if (gameState == GAME_OVER)
         {
             startFrame();
 
