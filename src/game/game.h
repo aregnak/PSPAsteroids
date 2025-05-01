@@ -4,6 +4,7 @@
 typedef enum {
     GAME_RUNNING,
     GAME_OVER,
+    MAIN_MENU
 } GameState;
 
 void handleArea(float *x, float *y, short int sHeight, short int sWidth);

@@ -90,8 +90,8 @@ int main()
             pspDebugScreenSetXY(0, 2);
             sceCtrlReadBufferPositive(&pad, 1);
 
-            accx -= (pad.Lx  - 128) / 50;
-            accy -= (pad.Ly  - 128) / 50;
+            accx -= (pad.Lx  - 128.f) / 50;
+            accy -= (pad.Ly  - 128.f) / 50;
 
             velx = (accx - pad.Lx) / 80; // immitate acceleration and no gravity
             vely = (accy - pad.Ly) / 80;

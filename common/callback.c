@@ -2,6 +2,8 @@
 
 static int exitRequest = 0;
 
+// This isRunning function is for the whole game process.
+// Not an in game mode 
 int isRunning() {
   return !exitRequest;
 }
