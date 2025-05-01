@@ -4,6 +4,7 @@
 #define MAX_BULLETS 20
 
 #include "vertex.h"
+#include "triangle.h"
 
 typedef struct Vertex vertex;
 
@@ -21,5 +22,6 @@ void initBullet(Bullet* pew, short int maxPew);
 void drawBullet(Bullet* pewp, int pIndex);
 void moveBullet(Bullet* pewp, int i);
 void updateBullets(Bullet* pew, short int maxPew, short int sHeight, short int sWidth);
+void shootBullet(Triangle* player, Bullet* pew);
 
 #endif // BULLET_H

@@ -61,3 +61,23 @@ void updateBullets(Bullet* pew, short int maxPew, short int sHeight, short int s
         }
     }
 }
+
+void shootBullet(Triangle* player, Bullet* pew)
+{
+    for (int i = 0; i < MAX_BULLETS; i++)
+    {
+        if (!pew[i].active)
+        {
+            float peakx, peaky;
+            getTriPeak(player, &peakx, &peaky);
+
+            // Spawn a new bullet
+            pew[i].x = peakx;
+            pew[i].y = peaky;
+            pew[i].angle = player->angle + (90.f * M_PI / 180.f);
+            pew[i].speed = 8.0f; // Set bullet speed
+            pew[i].active = 1;   // Mark as active
+            break;
+        }
+    }
+}

@@ -37,7 +37,7 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
 #define WHITE 0xFFFFFFFF // For easy
 
 int score = 0;
-GameState gameState = MAIN_MENU;
+GameState gameState = GAME_RUNNING;
 
 int main()
 {
@@ -107,7 +107,7 @@ int main()
             // Player inputs
             if (pad.Buttons != 0)
             {
-                handlePlayerInput(&player, pew, pewTimer, pad.Buttons);
+                handlePlayerInput(&player, pew, &pewTimer, pad.Buttons);
             }
 
             if (pewTimer > 0)

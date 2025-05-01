@@ -2,7 +2,7 @@
 #include <math.h>
 #include "input.h"
 
-void handlePlayerInput(Triangle* player, Bullet* pew, short int pewTimer, unsigned int button)
+void handlePlayerInput(Triangle* player, Bullet* pew, short int* pewTimer, unsigned int button)
 {
     if (button & PSP_CTRL_LTRIGGER)
     {
@@ -22,23 +22,8 @@ void handlePlayerInput(Triangle* player, Bullet* pew, short int pewTimer, unsign
     {
         if (!pewTimer)
         {
-            for (int i = 0; i < MAX_BULLETS; i++)
-            {
-                if (!pew[i].active)
-                {
-                    float peakx, peaky;
-                    getTriPeak(player, &peakx, &peaky);
-
-                    // Spawn a new bullet
-                    pew[i].x = peakx;
-                    pew[i].y = peaky;
-                    pew[i].angle = player->angle + (90.f * M_PI / 180.f);
-                    pew[i].speed = 8.0f; // Set bullet speed
-                    pew[i].active = 1;   // Mark as active
-                    pewTimer = 15;
-                    break;
-                }
-            }
+            shootBullet(player, pew);
+            *pewTimer = 15;
         }
     }
 

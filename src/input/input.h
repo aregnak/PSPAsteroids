@@ -4,6 +4,6 @@
 #include "triangle.h"
 #include "bullet.h"
 
-void handlePlayerInput(Triangle*, Bullet*, short int pewTimer, unsigned int button);
+void handlePlayerInput(Triangle*, Bullet*, short int* pewTimer, unsigned int button);
 
 #endif // PINPUT_H
